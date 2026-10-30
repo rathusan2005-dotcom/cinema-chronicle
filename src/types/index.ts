@@ -1,66 +1,106 @@
-export interface RawPlayActivity {
-  'Apple Identifier'?: string;
-  'Apple Music Subscription'?: string;
-  'Artist Name'?: string;
-  'Container Description'?: string;
-  'Container Id'?: string;
-  'Container Type'?: string;
-  'Device Type'?: string;
-  'End Position In Milliseconds'?: string | number;
-  'Event End Timestamp'?: string;
-  'Event Reason Hint Type'?: string;
-  'Event Received Timestamp'?: string;
-  'Event Start Timestamp'?: string;
-  'Event Type'?: string;
-  'Feature Name'?: string;
-  'Genre'?: string;
-  'Item Added To Library Date'?: string;
-  'Media Duration In Milliseconds'?: string | number;
-  'Play Duration Milliseconds'?: string | number;
-  'Song Name'?: string;
-  'Source Type'?: string;
-  'UTC Offset In Seconds'?: string | number;
-  [key: string]: any;
-}
-
-export interface PlayRecord {
+export interface FilmRecord {
   id: string;
-  trackName: string;
-  artistName: string;
-  albumName?: string;
-  genre: string;
+  title: string;
+  releaseYear: number;
+  releaseDecade: string; // '2020s' | '2010s' | '2000s' | '1990s' | 'Classic ≤80s'
+  director: string;
+  language: string;
+  movement: string;
+  runtimeMinutes: number;
+  watchedDate: string; // YYYY-MM-DD
+  loggedDate: string;  // YYYY-MM-DD
   timestamp: Date;
-  playDurationMs: number;
-  mediaDurationMs: number;
-  endReason: string;
-  containerType?: string;
-  containerName?: string;
-  sourceMode?: 'album' | 'playlist' | 'search' | 'radio';
-  isSleepPlay: boolean;
-  isNightPlay: boolean;
-  isSkipped: boolean;
-  coverUrl?: string;
+  rating: number | null; // 0.5 to 5.0
+  isRewatch: boolean;
+  isLiked: boolean;      // Hearted in likes/films.csv
+  isDiaryLogged: boolean; // True if in diary.csv/reviews.csv, false if catalog-only watched.csv
+  review: string;
+  reviewWordCount: number;
+  tags: string[];
+  lists: string[];
+  letterboxdUri: string;
 }
 
-export interface CleanserConfig {
-  purgeSleepPlaylists: boolean;
-  purgeNightHours: boolean;
-  nightStartHour: number; // e.g., 23.5 (11:30 PM)
-  nightEndHour: number;   // e.g., 7.0 (7:00 AM)
-  minPlaySeconds: number; // e.g., 10 seconds
-  customSleepKeywords: string[];
+export interface CuratedListItem {
+  position: number;
+  title: string;
+  year: number;
+  url: string;
+  note: string;
+  rating: number | null;
+  isWatched: boolean;
+  isLiked: boolean;
+  director: string;
+}
+
+export interface CuratedList {
+  id: string;
+  name: string;
+  createdDate: string;
+  url: string;
+  description: string;
+  items: CuratedListItem[];
+}
+
+export interface CommentRecord {
+  id: string;
+  date: string;
+  contentUrl: string;
+  comment: string;
+  wordCount: number;
+}
+
+export interface WatchlistRecord {
+  dateAdded: string;
+  title: string;
+  year: number;
+  uri: string;
+  director: string;
+  language: string;
+  movement: string;
+}
+
+export interface RathProfile {
+  username: string;
+  givenName: string;
+  dateJoined: string;
+  location: string;
+  bio: string;
+  pronoun: string;
+  favoriteFilms: {
+    title: string;
+    year: number;
+    director: string;
+    uri: string;
+    screenings: number;
+    rating: number;
+    tagline: string;
+  }[];
+}
+
+export interface ArchiveStats {
+  totalDiaryScreenings: number;
+  totalCatalogRecords: number;
+  uniqueFilmsWatched: number;
+  totalHoursWatched: number;
+  totalWrittenReviews: number;
+  totalReviewWords: number;
+  totalRewatchScreenings: number;
+  totalLikedFilms: number;
+  avgRating: number;
+  fiveStarCount: number;
 }
 
 export type TimeResolution = 'all' | 'year' | 'month' | 'week' | 'day';
 
-export interface SonicCurrent {
+export interface CinemaCurrent {
   id: string;
   name: string;
   shortName: string;
   color: string;
   secondaryColor: string;
   description: string;
-  anchorArtists: string[];
+  anchorDirectors: string[];
 }
 
 export interface EmergentEra {
@@ -75,123 +115,87 @@ export interface EmergentEra {
     color: string;
   }[];
   totalHours: number;
-  totalPlays: number;
-  topArtists: string[];
+  totalFilms: number;
+  totalReviews: number;
+  avgRating: number;
+  topFilms: string[];
   narrative: string;
 }
 
-export interface SonicEra {
+export interface DirectorFilmLog {
   id: string;
-  name: string;
-  subtitle: string;
-  timeRange: string;
-  startDate: string;
-  endDate: string;
-  color: string;
-  gradient: string;
-  description: string;
-  keyArtists: string[];
-  vibeTags: string[];
-  icon: string;
+  title: string;
+  year: number;
+  watchedDate: string;
+  rating: number | null;
+  isRewatch: boolean;
+  isLiked: boolean;
+  hasReview: boolean;
+  reviewSnippet?: string;
+  fullReview?: string;
+  tags: string[];
 }
 
-export interface DiscographyRelease {
-  albumName: string;
-  plays: number;
-  minutes: number;
-  coverUrl?: string;
-  firstPlayedInAlbum?: string;
-}
-
-export interface DiscoverySpike {
-  artistName: string;
-  firstTrack: string; // Gateway track
-  firstPlayedDate: Date;
-  albumCover?: string;
-  playsNext7Days: number;
-  playsNext14Days: number;
-  playsNext30Days: number;
+export interface DirectorDossier {
+  director: string;
+  primaryMovement: string;
+  primaryLanguage: string;
+  gatewayFilm: string;
+  gatewayYear: number;
+  gatewayDate: string;
+  gatewayRating: number | null;
+  crownFilm: string;
+  crownYear: number;
+  crownRating: number;
+  totalScreenings: number;
+  uniqueFilmsWatched: number;
+  totalHours: number;
+  avgRating: number;
+  likedCount: number;
+  reviewCount: number;
   bingeVelocityScore: number; // 0 - 100
-  notes?: string;
-  
-  // Detailed Lifecycle Dossier (Artist Deep Dive)
-  allTimeCrownTrack: string;
-  allTimePlays: number;
-  allTimeMinutes: number;
-  peakMonth: string;                 // e.g. "October 2024"
-  peakMonthShareOfEar: number;        // e.g. 38.4% of total listening that month
-  daysToSecondRelease: number;        // e.g. 2 days before exploring another project
-  patternType: 'Flashfire Binge' | 'Seasonal Wave' | 'Permanent Anchor';
-  discographySpread: DiscographyRelease[];
-  trajectoryCurve: number[];          // 30-day cumulative play trajectory
+  daysToSecondFilm: number;
+  peakMonth: string;
+  patternType: 'Auteur Obsession' | 'Comfort Pillar' | 'Marathon Binge';
+  filmographyLogs: DirectorFilmLog[];
+  trajectoryCurve: number[];
 }
 
-export interface CircadianHourCell {
-  dayOfWeek: number; // 0 = Sunday, 6 = Saturday
-  hour: number;      // 0 to 23
-  plays: number;
-  totalMinutes: number;
-  dominantGenre: string;
-  topArtist: string;
+export interface RewatchScreening {
+  id: string;
+  watchedDate: string;
+  loggedDate: string;
+  rating: number | null;
+  isRewatch: boolean;
+  review: string;
+  reviewWordCount: number;
+  tags: string[];
+  uri: string;
 }
 
-export interface ComfortAlbum {
-  albumName: string;
-  artistName: string;
-  coverUrl: string;
-  totalPlays: number;
-  totalMinutes: number;
-  topTrack: string;
-  highStressSpikePeriod: string;
-  emotionalTag: string;
-  repeatRatio: number; // repeats per session
-}
-
-export interface LoopObsession {
-  trackName: string;
-  artistName: string;
-  albumName?: string;
-  coverUrl?: string;
-  date: string;
-  loopCount24h: number;
-  totalMinutes24h: number;
-  consecutiveStreak?: number;
-  personalMeaning?: string;
+export interface RewatchAnchor {
+  title: string;
+  year: number;
+  director: string;
+  language: string;
+  movement: string;
+  runtimeMinutes: number;
+  totalScreenings: number;
+  rewatchCount: number;
+  avgRating: number;
+  isLiked: boolean;
+  isTopFour: boolean;
+  allTags: string[];
+  lists: string[];
+  screenings: RewatchScreening[];
 }
 
 export interface UserPersonalNote {
   id: string;
-  itemType: 'track' | 'album' | 'artist';
+  itemType: 'film' | 'director' | 'review';
   title: string;
-  artist: string;
+  subtitle: string;
   meaningNote: string;
   evokedEmotion: string;
   updatedAt: string;
-}
-
-export interface RepeatLeaderboardItem {
-  name: string;
-  artist: string;
-  album?: string;
-  coverUrl?: string;
-  plays: number;
-  minutes: number;
-  repeatRatio: number; // repeats per listening day
-  peakDayLoops: number;
-  personalNote?: string;
-}
-
-export interface DormantBanger {
-  id: string;
-  trackName: string;
-  artistName: string;
-  albumName?: string;
-  coverUrl?: string;
-  peakPeriodLabel: string; // e.g. "Oct 2021"
-  peakPlaysInMonth: number;
-  lastPlayedDate: Date;
-  daysInHibernation: number;
-  totalHistoricalPlays: number;
-  eraName: string;
-  eraColor: string;
 }

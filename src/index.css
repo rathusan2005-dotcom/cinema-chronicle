@@ -19,11 +19,12 @@
     --border-specular: rgba(242, 240, 234, 0.14);
   }
 
+  [data-theme="criterion"],
   [data-theme="vinyl"] {
-    --bg-canvas: #11100d;
-    --bg-elevated: #191713;
-    --bg-surface: rgba(29, 26, 21, 0.82);
-    --bg-glass-dock: rgba(28, 25, 20, 0.82);
+    --bg-canvas: #0d0c0a;
+    --bg-elevated: #161410;
+    --bg-surface: rgba(26, 23, 18, 0.85);
+    --bg-glass-dock: rgba(25, 22, 17, 0.84);
     --text-primary: #f5f1e6;
     --text-secondary: #b8b0a0;
     --text-muted: #7d7567;

@@ -3,65 +3,63 @@ import { APP_VERSION } from '../version';
 import {
   Waves,
   Moon,
-  Sun,
   Upload,
-  SlidersHorizontal,
+  BookOpen,
   Compass,
-  Clock,
   BarChart3,
-  Repeat,
-  Disc3
+  Flame,
+  Film,
+  Heart,
+  Calendar
 } from 'lucide-react';
-import { CleanserStats } from '../lib/cleanser';
+import { ArchiveStats } from '../types';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  activeOnly: boolean;
-  setActiveOnly: (val: boolean) => void;
-  theme: 'oled' | 'vinyl';
-  setTheme: (theme: 'oled' | 'vinyl') => void;
-  stats: CleanserStats;
+  diaryOnly: boolean;
+  setDiaryOnly: (val: boolean) => void;
+  theme: 'oled' | 'criterion';
+  setTheme: (theme: 'oled' | 'criterion') => void;
+  stats: ArchiveStats;
   isCustomData: boolean;
   onOpenUpload: () => void;
   onResetData: () => void;
-  onOpenSettings: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
-  activeOnly,
-  setActiveOnly,
+  diaryOnly,
+  setDiaryOnly,
   theme,
   setTheme,
   stats,
   isCustomData,
   onOpenUpload,
-  onResetData,
-  onOpenSettings
+  onResetData
 }) => {
   const tabs = [
-    { id: 'river', label: 'River', fullLabel: 'River of Sound', icon: Waves },
-    { id: 'discovery', label: 'First Contact', fullLabel: 'First Contact', icon: Compass },
-    { id: 'onrepeat', label: 'On Repeat', fullLabel: 'On Repeat', icon: Repeat },
-    { id: 'lens', label: 'Timeline', fullLabel: 'Timeline Lens', icon: BarChart3 },
-    { id: 'circadian', label: 'Circadian', fullLabel: 'Circadian Matrix', icon: Clock }
+    { id: 'river', label: 'River', fullLabel: 'River of Cinema', icon: Waves },
+    { id: 'ledger', label: 'Reviews', fullLabel: 'Review Ledger', icon: BookOpen },
+    { id: 'directors', label: 'Directors', fullLabel: 'The Rabbit Hole', icon: Compass },
+    { id: 'sanctuary', label: 'Sanctuary', fullLabel: 'Rewatch Sanctuary', icon: Flame },
+    { id: 'lens', label: 'Velocity', fullLabel: 'Velocity Lens', icon: BarChart3 }
   ];
 
   return (
     <>
       {/* Top Archival Masthead */}
-      <header className="sticky top-0 z-30 w-full border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]/85 backdrop-blur-xl transition-colors duration-300">
+      <header className="sticky top-0 z-30 w-full border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]/88 backdrop-blur-xl transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Left: Editorial Masthead + Inline Telemetry Ledger */}
+          {/* Left: Editorial Masthead + Inline Celluloid Telemetry */}
           <div className="flex flex-wrap items-baseline justify-between lg:justify-start gap-x-6 gap-y-2">
             <div className="flex items-baseline gap-2.5">
               <h1 className="font-editorial text-xl sm:text-2xl font-medium tracking-tight text-[var(--text-primary)]">
-                Sonic Chronicle
+                Cinema Chronicle
               </h1>
               <span className="font-tabular text-[11px] uppercase tracking-widest text-[var(--text-muted)]">
-                2020–2026
+                @rathhh · 2021–2026
               </span>
               <span
                 id="header-beta-badge"
@@ -71,40 +69,47 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
 
-            {/* Inline Archival Telemetry (Replaces Top SaaS Stat Cards) */}
-            <div className="flex items-center gap-3 sm:gap-4 text-xs border-l border-[var(--border-hairline)] pl-3 sm:pl-5">
+            {/* Inline Archival Telemetry */}
+            <div className="flex items-center flex-wrap gap-3 sm:gap-4 text-xs border-l border-[var(--border-hairline)] pl-3 sm:pl-5">
               <div>
-                <span className="text-[var(--text-muted)] mr-1.5">Active:</span>
                 <span className="font-tabular font-semibold text-[var(--text-primary)]">
-                  {stats.totalCleanPlays.toLocaleString()}
+                  {diaryOnly ? stats.totalDiaryScreenings : stats.totalCatalogRecords}
                 </span>
-                <span className="text-[var(--text-muted)] ml-1 hidden sm:inline">streams</span>
+                <span className="text-[var(--text-muted)] ml-1">
+                  {diaryOnly ? 'diary logs' : 'total logs'}
+                </span>
               </div>
               <span className="text-[var(--text-muted)]">·</span>
               <div>
                 <span className="font-tabular font-semibold text-[#d4a359]">
-                  {Math.round(stats.totalCleanMinutes / 60).toLocaleString()}
+                  {stats.totalWrittenReviews}
                 </span>
-                <span className="text-[var(--text-muted)] ml-1">hrs</span>
+                <span className="text-[var(--text-muted)] ml-1">reviews</span>
+                <span className="text-[var(--text-muted)] ml-1 hidden md:inline font-tabular text-[11px]">
+                  ({(stats.totalReviewWords / 1000).toFixed(1)}k words)
+                </span>
+              </div>
+              <span className="text-[var(--text-muted)] hidden sm:inline">·</span>
+              <div className="hidden sm:block">
+                <span className="font-tabular font-semibold text-[#e05a47]">
+                  {stats.totalRewatchScreenings}
+                </span>
+                <span className="text-[var(--text-muted)] ml-1">rewatches</span>
               </div>
               <span className="text-[var(--text-muted)] hidden md:inline">·</span>
-              <button
-                onClick={onOpenSettings}
-                className="hidden md:flex items-center gap-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition group"
-                title="Configure Smart Sleep Cleanser"
-              >
-                <span className="font-tabular text-[#c85a32] font-medium">
-                  −{stats.sleepPlaylistPurged.toLocaleString()}
+              <div className="hidden md:flex items-center gap-1">
+                <Heart className="w-3 h-3 text-rose-400 fill-rose-400/80" />
+                <span className="font-tabular font-semibold text-[var(--text-primary)]">
+                  {stats.totalLikedFilms}
                 </span>
-                <span className="text-[var(--text-muted)] group-hover:underline">sleep loops purged</span>
-                <SlidersHorizontal className="w-3 h-3 text-[var(--text-muted)] group-hover:text-[#d4a359] transition" />
-              </button>
+                <span className="text-[var(--text-muted)]">loved</span>
+              </div>
             </div>
           </div>
 
-          {/* Right: Surface Theme Toggle, Active Filter Switch & CSV Ingest */}
+          {/* Right: Dual Surface Mode Switcher, Diary/Catalog Toggle & CSV Ingest */}
           <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5 flex-wrap">
-            {/* Dual Surface Mode Switcher: OLED Midnight vs Vinyl Archive */}
+            {/* Dual Surface Mode Switcher: OLED Screening Room vs 35mm Criterion Archive */}
             <div
               className="flex items-center p-0.5 rounded-full bg-white/[0.03] border border-[var(--border-hairline)]"
               role="group"
@@ -117,58 +122,51 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'bg-white/12 text-white shadow-sm'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
-                title="True Pitch-Black #000000 for late-night iPhone inspection"
+                title="True Pitch-Black #000000 OLED Screening Room"
               >
                 <Moon className="w-3 h-3 text-sky-300" />
                 <span>OLED</span>
               </button>
               <button
-                onClick={() => setTheme('vinyl')}
+                onClick={() => setTheme('criterion')}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                  theme === 'vinyl'
+                  theme === 'criterion'
                     ? 'bg-[#d4a359]/20 text-[#f4f0ea] border border-[#d4a359]/30 shadow-sm'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
-                title="Warm Espresso & Parchment gatefold sleeve mode"
+                title="Warm #0d0c0a Criterion 35mm Celluloid Archive"
               >
-                <Disc3 className="w-3 h-3 text-[#d4a359]" />
-                <span>Vinyl</span>
+                <Film className="w-3 h-3 text-[#d4a359]" />
+                <span>35mm</span>
               </button>
             </div>
 
-            {/* Active Listening Master Switch */}
+            {/* Diary Only vs Full Catalog Master Switch */}
             <div className="flex items-center p-0.5 rounded-full bg-white/[0.03] border border-[var(--border-hairline)]">
               <button
-                onClick={() => setActiveOnly(true)}
+                onClick={() => setDiaryOnly(true)}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                  activeOnly
-                    ? 'bg-[#c85a32]/20 text-[#f4f0ea] border border-[#c85a32]/40'
+                  diaryOnly
+                    ? 'bg-[#e05a47]/20 text-[#f4f0ea] border border-[#e05a47]/40'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
+                title="Exact dated screenings from diary.csv + reviews.csv"
               >
-                <Sun className="w-3 h-3 text-[#d4a359]" />
-                <span>Pure Active</span>
+                <Calendar className="w-3 h-3 text-[#d4a359]" />
+                <span>Diary ({stats.totalDiaryScreenings})</span>
               </button>
               <button
-                onClick={() => setActiveOnly(false)}
+                onClick={() => setDiaryOnly(false)}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                  !activeOnly
+                  !diaryOnly
                     ? 'bg-white/10 text-white'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
+                title="Includes +70 unlogged watched/rated catalog films"
               >
-                <span>Raw Log</span>
+                <span>All ({stats.totalCatalogRecords})</span>
               </button>
             </div>
-
-            {/* Mobile Cleanser Settings Button */}
-            <button
-              onClick={onOpenSettings}
-              className="md:hidden p-1.5 rounded-full bg-white/[0.03] border border-[var(--border-hairline)] text-[var(--text-secondary)] hover:text-white"
-              title="Configure Sleep Cleanser"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-            </button>
 
             {/* Upload CSV Button */}
             <button
@@ -176,13 +174,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-[var(--border-specular)] text-[11px] font-medium text-[var(--text-primary)] transition-all"
             >
               <Upload className="w-3 h-3 text-[#d4a359]" />
-              <span>{isCustomData ? 'Update CSV' : 'Import CSV'}</span>
+              <span>{isCustomData ? 'Update Boxd' : 'Import Boxd'}</span>
             </button>
 
             {isCustomData && (
               <button
                 onClick={onResetData}
-                className="text-[11px] text-[#c85a32] hover:underline"
+                className="text-[11px] text-[#e05a47] hover:underline"
               >
                 Reset
               </button>
@@ -191,7 +189,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      {/* Style C Floating Liquid-Glass Bottom Pill Dock */}
+      {/* Floating Liquid-Glass Bottom Pill Dock */}
       <nav
         aria-label="Primary Chronicle Navigation"
         className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 px-2 py-1.5 rounded-full liquid-dock flex items-center gap-1 sm:gap-1.5 max-w-[95vw] overflow-x-auto scrollbar-none"

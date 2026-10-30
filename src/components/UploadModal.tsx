@@ -1,167 +1,103 @@
-import React, { useState, useRef } from 'react';
-import { X, Upload, FileText, CheckCircle2, AlertCircle, Sparkles, ShieldCheck } from 'lucide-react';
-import { parseAppleMusicCSV } from '../lib/parser';
-import { PlayRecord, CleanserConfig } from '../types';
+import React, { useState } from 'react';
+import { FilmRecord } from '../types';
+import { parseLetterboxdFiles } from '../lib/parser';
+import { Upload, X, FileSpreadsheet, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onDataLoaded: (records: PlayRecord[], filename: string) => void;
-  config: CleanserConfig;
+  onDataLoaded: (records: FilmRecord[], filename: string) => void;
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
   isOpen,
   onClose,
-  onDataLoaded,
-  config
+  onDataLoaded
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previewStats, setPreviewStats] = useState<{
-    count: number;
-    startDate: string;
-    endDate: string;
-  } | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
-  const handleFile = async (file: File) => {
-    if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
-      setError('Please provide a valid CSV file (e.g. "Apple Music Play Activity.csv")');
-      return;
-    }
-
+  const handleFilesSelected = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setIsParsing(true);
     setError(null);
-    setIsProcessing(true);
-
     try {
-      const records = await parseAppleMusicCSV(file, undefined, config);
-      if (records.length === 0) {
-        throw new Error('No valid play activity rows found in this CSV.');
+      const parsed = await parseLetterboxdFiles(files);
+      if (parsed.length === 0) {
+        setError('No valid Letterboxd rows found. Select diary.csv, reviews.csv, ratings.csv, or watched.csv.');
+        setIsParsing(false);
+        return;
       }
-
-      setPreviewStats({
-        count: records.length,
-        startDate: records[0].timestamp.toLocaleDateString(),
-        endDate: records[records.length - 1].timestamp.toLocaleDateString()
-      });
-
-      // Brief delay for smooth UX transition
-      setTimeout(() => {
-        onDataLoaded(records, file.name);
-        setIsProcessing(false);
-        onClose();
-      }, 700);
+      const names = Array.from(files)
+        .map((f) => f.name)
+        .join(', ');
+      onDataLoaded(parsed, names);
+      setIsParsing(false);
+      onClose();
     } catch (err: any) {
-      setError(err?.message || 'Failed to parse Apple Music Play Activity CSV.');
-      setIsProcessing(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFile(e.dataTransfer.files[0]);
+      setError(err?.message || 'Failed to parse Letterboxd CSV files.');
+      setIsParsing(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="relative w-full max-w-xl p-6 rounded-2xl glass-card border border-white/10 shadow-2xl overflow-hidden">
-        {/* Glow backdrop */}
-        <div className="absolute -top-24 -left-24 w-60 h-60 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-60 h-60 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-300 border border-purple-500/20">
-              <Upload className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white font-heading">
-                Ingest Apple Music Archive
-              </h2>
-              <p className="text-xs text-zinc-400">
-                100% Private & Stored Locally in IndexedDB • Zero data leaves your device
-              </p>
-            </div>
+    <div
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="archive-plate rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 border border-[#d4a359]/35 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <span className="font-tabular text-xs uppercase tracking-widest text-[#d4a359]">
+              Local-First Letterboxd Ingest
+            </span>
+            <h3 className="font-editorial text-2xl sm:text-3xl text-[var(--text-primary)] mt-1">
+              Import Letterboxd Export CSVs
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
+              Your personal archive (@rathhh) is already pre-loaded! Drop fresh <code className="text-[#d4a359]">diary.csv</code>, <code className="text-[#d4a359]">reviews.csv</code>, <code className="text-[#d4a359]">ratings.csv</code>, or <code className="text-[#d4a359]">watched.csv</code> files here anytime to update your local IndexedDB vault.
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition"
+            className="p-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-[var(--text-secondary)] hover:text-white"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Drop Zone */}
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`mt-6 border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-            isDragging
-              ? 'border-purple-400 bg-purple-500/10 scale-[0.99]'
-              : 'border-white/15 bg-white/[0.02] hover:bg-white/[0.04] hover:border-purple-500/40'
-          }`}
-        >
+        <label className="block border-2 border-dashed border-[#d4a359]/35 hover:border-[#d4a359] rounded-2xl p-8 text-center cursor-pointer bg-black/30 transition-all">
+          <Upload className="w-8 h-8 text-[#d4a359] mx-auto mb-3" />
+          <p className="font-editorial text-lg text-[var(--text-primary)]">
+            {isParsing ? 'Reconciling Letterboxd CSVs...' : 'Select one or multiple Letterboxd CSV files'}
+          </p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            Supports multi-select (diary.csv + reviews.csv + ratings.csv + watched.csv)
+          </p>
           <input
             type="file"
-            ref={fileInputRef}
-            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
             accept=".csv"
+            multiple
             className="hidden"
+            onChange={(e) => handleFilesSelected(e.target.files)}
           />
+        </label>
 
-          <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-3 shadow-inner">
-            <FileText className="w-8 h-8 text-purple-300" />
-          </div>
-
-          <h3 className="text-sm font-semibold text-white">
-            {isProcessing ? 'Processing stream history...' : 'Drop "Apple Music Play Activity.csv" here'}
-          </h3>
-          <p className="text-xs text-zinc-400 mt-1 max-w-sm">
-            or click to browse your files. Works directly with the official Apple Media Services GDPR data export.
-          </p>
-
-          {isProcessing && (
-            <div className="mt-4 flex items-center gap-2 text-xs text-purple-300 font-mono animate-pulse">
-              <Sparkles className="w-4 h-4" />
-              Parsing timestamps & scrubbing sleep playlists...
-            </div>
-          )}
-        </div>
-
-        {/* Feedback / Alerts */}
         {error && (
-          <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
+          <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs text-rose-200 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{error}</span>
           </div>
         )}
 
-        {previewStats && (
-          <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-            <span>
-              Loaded {previewStats.count.toLocaleString()} plays ({previewStats.startDate} – {previewStats.endDate})
-            </span>
-          </div>
-        )}
-
-        {/* Privacy Note */}
-        <div className="mt-6 p-3 rounded-xl bg-zinc-900/50 border border-white/5 text-[11px] text-zinc-400 flex items-start gap-2.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-semibold text-zinc-300">Zero Data Leakage:</span> Your music listening records, IP addresses, and Apple IDs remain 100% inside your local browser memory. Nothing is ever uploaded to any remote server.
-          </div>
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-[var(--border-hairline)] text-[11px] text-[var(--text-muted)] flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>100% Private: Processed strictly in your browser and cached in local IndexedDB.</span>
         </div>
       </div>
     </div>

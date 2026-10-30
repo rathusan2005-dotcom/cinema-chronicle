@@ -1,40 +1,36 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { PlayRecord, CleanserConfig } from './types';
-import { generateMockPlayHistory } from './lib/mockData';
-import { DEFAULT_CLEANSER_CONFIG, calculateCleanserStats, filterRecords } from './lib/cleanser';
+import { FilmRecord } from './types';
+import { getPreloadedFilmRecords } from './lib/letterboxdArchive';
+import { computeArchiveStats, filterFilmRecords } from './lib/analytics';
 import { Navbar } from './components/Navbar';
 import { EraStreamgraph } from './components/EraStreamgraph';
-import { CircadianMatrix } from './components/CircadianMatrix';
+import { ReviewLedger } from './components/ReviewLedger';
 import { DiscoverySpikes } from './components/DiscoverySpikes';
 import { OnRepeat } from './components/OnRepeat';
-import { ComfortBlanket } from './components/ComfortBlanket'; // Dormant: reserved for future Journal / Mood sync
-import { CrossGenreRecommender } from './components/CrossGenreRecommender';
 import { GranularTimeline } from './components/GranularTimeline';
 import { UploadModal } from './components/UploadModal';
-import { CleanserSettingsModal } from './components/CleanserSettingsModal';
 import { loadArchiveFromDB, saveArchiveToDB, clearArchiveFromDB } from './lib/storage';
 
 export function App() {
-  const [records, setRecords] = useState<PlayRecord[]>(() => generateMockPlayHistory());
+  const [records, setRecords] = useState<FilmRecord[]>(() => getPreloadedFilmRecords());
   const [isCustomData, setIsCustomData] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('river');
-  const [activeOnly, setActiveOnly] = useState<boolean>(true);
-  const [theme, setTheme] = useState<'oled' | 'vinyl'>(() => {
+  const [diaryOnly, setDiaryOnly] = useState<boolean>(true);
+  const [theme, setTheme] = useState<'oled' | 'criterion'>(() => {
     try {
-      const saved = localStorage.getItem('sonic_chronicle_theme');
-      if (saved === 'oled' || saved === 'vinyl') return saved;
+      const saved = localStorage.getItem('cinema_chronicle_theme');
+      if (saved === 'oled' || saved === 'criterion') return saved;
     } catch {}
-    return 'vinyl';
+    return 'criterion';
   });
-  const [cleanserConfig, setCleanserConfig] = useState<CleanserConfig>(DEFAULT_CLEANSER_CONFIG);
 
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [reviewJumpTitle, setReviewJumpTitle] = useState<string | null>(null);
 
   // Restore persisted IndexedDB archive on launch
   useEffect(() => {
     let isMounted = true;
-    loadArchiveFromDB().then(saved => {
+    loadArchiveFromDB().then((saved) => {
       if (isMounted && saved && saved.records.length > 0) {
         setRecords(saved.records);
         setIsCustomData(true);
@@ -48,30 +44,34 @@ export function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     try {
-      localStorage.setItem('sonic_chronicle_theme', theme);
+      localStorage.setItem('cinema_chronicle_theme', theme);
     } catch {}
   }, [theme]);
 
-  // Compute Cleanser statistics
   const stats = useMemo(() => {
-    return calculateCleanserStats(records, cleanserConfig);
-  }, [records, cleanserConfig]);
+    return computeArchiveStats(records, diaryOnly);
+  }, [records, diaryOnly]);
 
-  // Filtered dataset according to active/full toggle & cleanser settings
   const filteredRecords = useMemo(() => {
-    return filterRecords(records, activeOnly, cleanserConfig);
-  }, [records, activeOnly, cleanserConfig]);
+    return filterFilmRecords(records, diaryOnly);
+  }, [records, diaryOnly]);
 
-  const handleCustomDataLoaded = (newRecords: PlayRecord[], filename: string = 'Apple Music Play Activity.csv') => {
+  const handleCustomDataLoaded = (newRecords: FilmRecord[], filename: string = 'Letterboxd Export') => {
     setRecords(newRecords);
     setIsCustomData(true);
     saveArchiveToDB(newRecords, filename);
   };
 
   const handleResetData = () => {
-    setRecords(generateMockPlayHistory());
+    setRecords(getPreloadedFilmRecords());
     setIsCustomData(false);
     clearArchiveFromDB();
+  };
+
+  const handleJumpToFilmReview = (filmTitle: string) => {
+    setReviewJumpTitle(filmTitle);
+    setActiveTab('ledger');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -80,62 +80,62 @@ export function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        activeOnly={activeOnly}
-        setActiveOnly={setActiveOnly}
+        diaryOnly={diaryOnly}
+        setDiaryOnly={setDiaryOnly}
         theme={theme}
         setTheme={setTheme}
         stats={stats}
         isCustomData={isCustomData}
         onOpenUpload={() => setIsUploadOpen(true)}
         onResetData={handleResetData}
-        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* Main Content Area — Immediate First-Viewport Immersion */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-28 space-y-12">
-        {/* Tab Views */}
         {activeTab === 'river' && (
-          <EraStreamgraph records={filteredRecords} activeOnly={activeOnly} />
+          <EraStreamgraph
+            records={filteredRecords}
+            diaryOnly={diaryOnly}
+            onSelectFilmReview={handleJumpToFilmReview}
+          />
         )}
 
-        {activeTab === 'discovery' && (
-          <DiscoverySpikes records={filteredRecords} isCustomData={isCustomData} />
+        {activeTab === 'ledger' && (
+          <ReviewLedger
+            records={records}
+            initialSearchTitle={reviewJumpTitle}
+            onClearInitialSearch={() => setReviewJumpTitle(null)}
+          />
         )}
 
-        {activeTab === 'onrepeat' && (
-          <OnRepeat records={filteredRecords} isCustomData={isCustomData} />
+        {activeTab === 'directors' && (
+          <DiscoverySpikes
+            records={filteredRecords}
+            onOpenReview={handleJumpToFilmReview}
+          />
+        )}
+
+        {activeTab === 'sanctuary' && (
+          <OnRepeat
+            records={records}
+            onOpenReview={handleJumpToFilmReview}
+          />
         )}
 
         {activeTab === 'lens' && (
-          <GranularTimeline records={filteredRecords} activeOnly={activeOnly} />
-        )}
-
-        {activeTab === 'circadian' && (
-          <CircadianMatrix records={filteredRecords} activeOnly={activeOnly} />
-        )}
-
-        {/* Dormant: Reserved for future journal/cross-genre sync */}
-        {activeTab === 'comfort' && (
-          <ComfortBlanket records={filteredRecords} isCustomData={isCustomData} />
-        )}
-        {activeTab === 'recommendations' && (
-          <CrossGenreRecommender />
+          <GranularTimeline
+            records={records}
+            diaryOnly={diaryOnly}
+            onOpenReview={handleJumpToFilmReview}
+          />
         )}
       </main>
 
-      {/* Modals */}
+      {/* Letterboxd CSV Ingest Modal */}
       <UploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onDataLoaded={handleCustomDataLoaded}
-        config={cleanserConfig}
-      />
-
-      <CleanserSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        config={cleanserConfig}
-        onUpdateConfig={setCleanserConfig}
       />
 
       {/* Archival Colophon Footer */}
@@ -144,12 +144,14 @@ export function App() {
           <div className="flex items-center gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#d4a359]" />
             <span className="font-editorial italic text-sm text-[var(--text-secondary)]">
-              Sonic Chronicle — Personal Archive for Rath (@justrath)
+              Cinema Chronicle — Personal 35mm Celluloid Archive for Rath (@rathhh · eelam 🐅)
             </span>
           </div>
 
           <div className="flex items-center gap-4 font-tabular text-[11px]">
-            <span>2020 – 2026</span>
+            <span>2021 – 2026</span>
+            <span>·</span>
+            <span>477 Films · 287 Written Reviews</span>
             <span>·</span>
             <span>100% Local-First Execution</span>
           </div>

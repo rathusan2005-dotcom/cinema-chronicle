@@ -1,16 +1,15 @@
-import { PlayRecord, CleanserConfig, UserPersonalNote } from '../types';
+import { FilmRecord, UserPersonalNote } from '../types';
 
-const DB_NAME = 'sonic_chronicle_db';
+const DB_NAME = 'cinema_chronicle_db';
 const DB_VERSION = 1;
-const STORE_DATA = 'sonic_dataset';
+const STORE_DATA = 'cinema_dataset';
 const STORE_NOTES = 'user_notes';
-const STORE_CONFIG = 'cleanser_config';
 
 interface StoredDataset {
   id: 'current_archive';
   filename: string;
   importedAt: string;
-  records: Array<Omit<PlayRecord, 'timestamp'> & { timestamp: string }>;
+  records: Array<Omit<FilmRecord, 'timestamp'> & { timestamp: string }>;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -29,9 +28,6 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_NOTES)) {
         db.createObjectStore(STORE_NOTES, { keyPath: 'key' });
       }
-      if (!db.objectStoreNames.contains(STORE_CONFIG)) {
-        db.createObjectStore(STORE_CONFIG, { keyPath: 'id' });
-      }
     };
 
     request.onsuccess = () => resolve(request.result);
@@ -40,10 +36,10 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 /**
- * Saves parsed Apple Music records to local IndexedDB.
+ * Saves parsed Letterboxd film records to local IndexedDB.
  */
 export async function saveArchiveToDB(
-  records: PlayRecord[],
+  records: FilmRecord[],
   filename: string
 ): Promise<void> {
   try {
@@ -74,10 +70,10 @@ export async function saveArchiveToDB(
 }
 
 /**
- * Loads persisted Apple Music records from IndexedDB.
+ * Loads persisted Letterboxd film records from IndexedDB.
  */
 export async function loadArchiveFromDB(): Promise<{
-  records: PlayRecord[];
+  records: FilmRecord[];
   filename: string;
   importedAt: string;
 } | null> {
@@ -95,7 +91,7 @@ export async function loadArchiveFromDB(): Promise<{
           return;
         }
 
-        const deserialized: PlayRecord[] = result.records.map(r => ({
+        const deserialized: FilmRecord[] = result.records.map(r => ({
           ...r,
           timestamp: new Date(r.timestamp)
         }));
@@ -116,7 +112,7 @@ export async function loadArchiveFromDB(): Promise<{
 }
 
 /**
- * Purges the custom dataset from IndexedDB (resets to default).
+ * Purges the custom dataset from IndexedDB (resets to Rath's preloaded Letterboxd archive).
  */
 export async function clearArchiveFromDB(): Promise<void> {
   try {
@@ -135,15 +131,14 @@ export async function clearArchiveFromDB(): Promise<void> {
 }
 
 /**
- * Saves personal notes & memories to IndexedDB.
+ * Saves personal notes & celluloid annotations to IndexedDB.
  */
 export async function saveNotesToDB(notes: Record<string, UserPersonalNote>): Promise<void> {
   try {
     const db = await openDB();
     const tx = db.transaction([STORE_NOTES], 'readwrite');
     const store = tx.objectStore(STORE_NOTES);
-    
-    // Clear and batch re-insert
+
     store.clear();
     Object.entries(notes).forEach(([key, note]) => {
       store.put({ key, ...note });
@@ -154,7 +149,7 @@ export async function saveNotesToDB(notes: Record<string, UserPersonalNote>): Pr
 }
 
 /**
- * Loads personal notes & memories from IndexedDB.
+ * Loads personal notes & celluloid annotations from IndexedDB.
  */
 export async function loadNotesFromDB(): Promise<Record<string, UserPersonalNote> | null> {
   try {
@@ -165,16 +160,15 @@ export async function loadNotesFromDB(): Promise<Record<string, UserPersonalNote
       const getAllReq = store.getAll();
 
       getAllReq.onsuccess = () => {
-        const results = getAllReq.result;
-        if (!results || results.length === 0) {
+        const rows = getAllReq.result;
+        if (!rows || rows.length === 0) {
           resolve(null);
           return;
         }
-
         const map: Record<string, UserPersonalNote> = {};
-        results.forEach((item: any) => {
-          const { key, ...note } = item;
-          map[key] = note;
+        rows.forEach((row: any) => {
+          const { key, ...note } = row;
+          map[key] = note as UserPersonalNote;
         });
         resolve(map);
       };

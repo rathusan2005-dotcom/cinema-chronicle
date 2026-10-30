@@ -1,166 +1,224 @@
 import Papa from 'papaparse';
-import { PlayRecord, RawPlayActivity, CleanserConfig } from '../types';
-import { evaluatePlayRecord, DEFAULT_CLEANSER_CONFIG } from './cleanser';
+import { FilmRecord } from '../types';
+import { FILM_METADATA_MAP } from './letterboxdArchive';
 
-// Map of known album cover filenames in public/covers
-export const KNOWN_COVERS: { [key: string]: string } = {
-  '3 ost': '/covers/3 - OST _Moonu_.jpg',
-  'moonu': '/covers/3 - OST _Moonu_.jpg',
-  'vibes two': '/covers/3d Sound - Vibes Two.jpg',
-  '3d sound': '/covers/3d Sound - Vibes Two.jpg',
-  'kadhal fever': '/covers/Achu _ Arshan Anton - Kadhal Fever.jpg',
-  'butterfly': '/covers/Akshara - Butterfly.jpg',
-  'clones ep': '/covers/Akshara - CLONES EP.jpg',
-  'experimental ep': '/covers/Akshara - Experimental EP.jpg',
-  'light years': '/covers/Akshara - Light Years.jpg',
-  'universe': '/covers/Akshara - Universe.jpg',
-  'theplaceicomefrom': '/covers/Akshara - theplaceicomefrom.jpg',
-  'sonder son': '/covers/Brent Faiyaz - Sonder Son.jpg',
-  'wasteland': '/covers/Brent Faiyaz - WASTELAND.jpg',
-  'trapsoul': '/covers/Bryson Tiller - TRAPSOUL.jpg',
-  'layers of love': '/covers/CPE - Layers of Love.jpg',
-  'love, clickz 2': '/covers/Clickz _ 3d Sound - Love_ Clickz 2 _Deluxe_.jpg',
-  'certified lover boy': '/covers/Drake - Certified Lover Boy.jpg',
-  'honestly, nevermind': '/covers/Drake - Honestly_ Nevermind.jpg',
-  'iceman': '/covers/Drake - ICEMAN.jpg',
-  'if you_re reading this it_s too late': '/covers/Drake - If You_re Reading This It_s Too Late.jpg',
-  'nothing was the same': '/covers/Drake - Nothing Was The Same _Deluxe_.jpg',
-  'scorpion': '/covers/Drake - Scorpion.jpg',
-  'dude': '/covers/Dude - OST.jpg',
-  'ethir neechal': '/covers/Ethir Neechal - OST.jpg',
-  'blonde': '/covers/Frank Ocean - Blonde.jpg',
-  'hndrxx': '/covers/Future - HNDRXX.jpg',
-  'arunachala': '/covers/Gayathri Krishnan - Arunachala.jpg',
-  'create to express': '/covers/Gayathri Krishnan - Create to Express.jpg',
-  '96 ost': '/covers/Govind Vasantha - 96 OST.jpg',
-  '96': '/covers/Govind Vasantha - 96 OST.jpg',
-  'bad love': '/covers/JanZee Official - Bad Love.jpg',
-  'dola': '/covers/JanZee Official - Dola.jpg',
-  'zaza': '/covers/JanZee Official - ZAZA.jpg',
-  'la la land': '/covers/La La Land - OST.jpg',
-  'bewitched': '/covers/Laufey - Bewitched _Goddess Edition_.jpg',
-  'everything i know about love': '/covers/Laufey - Everything I Know About Love _Deluxe_.jpg',
-  'oppenheimer': '/covers/Ludwig Goransson - Oppenheimer OST.jpg',
-  'chasing euphoria': '/covers/M Huncho - Chasing Euphoria.jpg',
-  'utopia': '/covers/M Huncho - Utopia.jpg',
-  'mahaan': '/covers/Mahaan - OST.jpg',
-  'mayakkam enna': '/covers/Mayakkam Enna - OST.jpg',
-  'paayum theeye': '/covers/Paayum Theeye _From Por_.jpg',
-  'pariyerum perumal': '/covers/Pariyerum Perumal - OST.jpg',
-  'raavanan': '/covers/Raavanan - OST.jpg',
-  'tamil ep': '/covers/Retro - TAMIL EP.jpg',
-  'sapta sagaradaache ello': '/covers/Sapta Sagaradaache Ello - Side A.jpg',
-  'sapta sagaradaache ello - side a': '/covers/Sapta Sagaradaache Ello - Side A.jpg',
-  'sapta sagaradaache ello - side b': '/covers/Sapta Sagaradaache Ello - Side B.jpg',
-  'cruel intentions': '/covers/Shreea Kaul - Cruel Intentions.jpg',
-  'chasing summer': '/covers/SiR - Chasing Summer.jpg',
-  'trilogy': '/covers/The Weeknd - Trilogy.jpg',
-  'uyir ponaalum': '/covers/Uyir Ponaalum - EP.jpg',
-  'vaazhai': '/covers/Vaazhai - OST.jpg',
-  'vanakkam chennai': '/covers/Vanakkam Chennai - OST.jpg',
-  'vendhu thanindhathu kaadu': '/covers/Vendhu Thanindhathu Kaadu - OST.jpg',
-  'yeh jawaani hai deewani': '/covers/Yeh Jawaani Hai Deewani - OST.jpg',
-  'last september': '/covers/natalie jinju - Last September.jpg',
-};
-
-export function findCover(artist?: string, albumOrTrack?: string): string | undefined {
-  const query = `${artist || ''} ${albumOrTrack || ''}`.toLowerCase();
-  for (const [key, path] of Object.entries(KNOWN_COVERS)) {
-    if (query.includes(key)) {
-      return path;
-    }
-  }
-  return undefined;
+function getDecade(year: number): string {
+  if (year >= 2020) return '2020s';
+  if (year >= 2010) return '2010s';
+  if (year >= 2000) return '2000s';
+  if (year >= 1990) return '1990s';
+  return 'Classic ≤80s';
 }
 
-export function parsePlayRecord(
-  raw: RawPlayActivity,
-  index: number,
-  config: CleanserConfig = DEFAULT_CLEANSER_CONFIG
-): PlayRecord | null {
-  // Try extracting track name
-  const trackName = raw['Song Name'] || raw['Title'] || raw['Track Description'] || raw['trackName'] || 'Unknown Track';
-  const artistName = raw['Artist Name'] || raw['Artist'] || raw['artistName'] || 'Unknown Artist';
-  const albumName = raw['Container Description'] || raw['Album Name'] || raw['Collection Name'] || raw['Playlist Name'] || '';
-  const genre = raw['Genre'] || raw['Genre Name'] || 'Music';
-
-  // Parse Timestamp
-  const rawTimestamp = raw['Event Start Timestamp'] || raw['Event End Timestamp'] || raw['Event Received Timestamp'] || raw['timestamp'] || raw['Date'];
-  if (!rawTimestamp) return null;
-
-  const timestamp = new Date(rawTimestamp);
-  if (isNaN(timestamp.getTime())) return null;
-
-  // Durations
-  const playDurationMs = Number(raw['Play Duration Milliseconds'] || raw['Duration Milliseconds'] || raw['Play Duration In Milliseconds'] || 0);
-  const mediaDurationMs = Number(raw['Media Duration In Milliseconds'] || raw['Media Duration'] || 0);
-
-  // End Reason
-  const endReason = String(raw['Event Reason Hint Type'] || raw['End Reason Type'] || raw['Event Type'] || '');
-  const containerType = raw['Container Type'] || raw['Feature Name'] || '';
-  const containerName = albumName;
-
-  // Deduce sourceMode
-  const featLower = (String(raw['Feature Name'] || '') + ' ' + String(containerType)).toLowerCase();
-  let sourceMode: 'album' | 'playlist' | 'search' | 'radio' = 'album';
-  if (featLower.includes('radio') || featLower.includes('station') || featLower.includes('auto')) {
-    sourceMode = 'radio';
-  } else if (featLower.includes('search')) {
-    sourceMode = 'search';
-  } else if (featLower.includes('playlist')) {
-    sourceMode = 'playlist';
-  } else {
-    sourceMode = 'album';
-  }
-
-  const coverUrl = findCover(artistName, albumName || trackName);
-
-  return evaluatePlayRecord({
-    id: `play-${index}-${timestamp.getTime()}`,
-    trackName,
-    artistName,
-    albumName,
-    genre,
-    timestamp,
-    playDurationMs,
-    mediaDurationMs,
-    endReason,
-    containerType,
-    containerName,
-    sourceMode,
-    coverUrl
-  }, config);
+function cleanReviewText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\u00a0/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/<\/?p>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(b|strong|i|em|blockquote|a)[^>]*>/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
-export function parseAppleMusicCSV(
-  fileOrText: File | string,
-  onProgress?: (progress: number) => void,
-  config: CleanserConfig = DEFAULT_CLEANSER_CONFIG
-): Promise<PlayRecord[]> {
+function parseSingleCsv(file: File): Promise<{ filename: string; rows: any[] }> {
   return new Promise((resolve, reject) => {
-    const results: PlayRecord[] = [];
-    let recordIndex = 0;
-
-    Papa.parse<RawPlayActivity>(fileOrText as any, {
+    Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      dynamicTyping: true,
-      step: (row) => {
-        if (row.data) {
-          const parsed = parsePlayRecord(row.data, recordIndex++, config);
-          if (parsed) {
-            results.push(parsed);
-          }
-        }
+      complete: (results) => {
+        resolve({ filename: file.name.toLowerCase(), rows: results.data as any[] });
       },
-      complete: () => {
-        // Sort chronologically ascending
-        results.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-        resolve(results);
-      },
-      error: (err) => {
-        reject(err);
-      }
+      error: (err) => reject(err)
     });
   });
+}
+
+/**
+ * Parses one or multiple Letterboxd CSV files (diary.csv, reviews.csv, ratings.csv, watched.csv)
+ * and merges them into unified FilmRecord objects.
+ */
+export async function parseLetterboxdFiles(files: FileList | File[]): Promise<FilmRecord[]> {
+  const fileArray = Array.from(files);
+  const parsedFiles = await Promise.all(fileArray.map(parseSingleCsv));
+
+  const diaryRows: any[] = [];
+  const reviewRows: any[] = [];
+  const ratingRows: any[] = [];
+  const watchedRows: any[] = [];
+
+  for (const pf of parsedFiles) {
+    if (pf.filename.includes('review')) {
+      reviewRows.push(...pf.rows);
+    } else if (pf.filename.includes('diary')) {
+      diaryRows.push(...pf.rows);
+    } else if (pf.filename.includes('rating')) {
+      ratingRows.push(...pf.rows);
+    } else if (pf.filename.includes('watched')) {
+      watchedRows.push(...pf.rows);
+    } else {
+      // Auto-detect by columns
+      const sample = pf.rows[0] || {};
+      if ('Review' in sample) {
+        reviewRows.push(...pf.rows);
+      } else if ('Watched Date' in sample || 'Rewatch' in sample) {
+        diaryRows.push(...pf.rows);
+      } else if ('Rating' in sample) {
+        ratingRows.push(...pf.rows);
+      } else if ('Name' in sample && 'Year' in sample) {
+        watchedRows.push(...pf.rows);
+      }
+    }
+  }
+
+  const ratingsMap = new Map<string, number>();
+  ratingRows.forEach((r) => {
+    const key = `${(r.Name || '').trim()}::${(r.Year || '').trim()}`;
+    if (r.Rating) ratingsMap.set(key, parseFloat(r.Rating));
+  });
+
+  const reviewsByUri = new Map<string, any>();
+  reviewRows.forEach((r) => {
+    const uri = (r['Letterboxd URI'] || '').trim();
+    if (uri) reviewsByUri.set(uri, r);
+  });
+
+  const diaryUris = new Set<string>();
+  const loggedFilmKeys = new Set<string>();
+  const records: FilmRecord[] = [];
+
+  diaryRows.forEach((d, idx) => {
+    const uri = (d['Letterboxd URI'] || '').trim();
+    if (uri) diaryUris.add(uri);
+    const title = (d.Name || 'Untitled Film').trim();
+    const yr = parseInt(d.Year, 10) || 2020;
+    const fKey = `${title}::${yr}`;
+    loggedFilmKeys.add(fKey);
+
+    const revRow = uri ? reviewsByUri.get(uri) : undefined;
+    const review = revRow ? cleanReviewText(revRow.Review || '') : '';
+    const wordCount = review ? review.split(/\s+/).filter(Boolean).length : 0;
+
+    const ratingRaw = d.Rating || (revRow ? revRow.Rating : '');
+    const rating = ratingRaw ? parseFloat(ratingRaw) : ratingsMap.get(fKey) ?? null;
+
+    const isRewatch =
+      String(d.Rewatch || '').trim().toLowerCase() === 'yes' ||
+      (revRow && String(revRow.Rewatch || '').trim().toLowerCase() === 'yes');
+
+    const tagsStr = d.Tags || (revRow ? revRow.Tags : '') || '';
+    const tags = tagsStr
+      .split(',')
+      .map((t: string) => t.trim())
+      .filter(Boolean);
+
+    const watchedDate = (d['Watched Date'] || (revRow && revRow['Watched Date']) || d.Date || '2024-01-01').trim();
+    const loggedDate = (d.Date || watchedDate).trim();
+    const meta = FILM_METADATA_MAP[title] || ['Independent / Auteur', 'English', 'Prestige Crime, Sci-Fi & Thrillers', 120];
+
+    records.push({
+      id: `upload-diary-${idx + 1}`,
+      title,
+      releaseYear: yr,
+      releaseDecade: getDecade(yr),
+      director: meta[0],
+      language: meta[1],
+      movement: meta[2],
+      runtimeMinutes: meta[3],
+      watchedDate,
+      loggedDate,
+      timestamp: new Date(watchedDate + 'T20:00:00'),
+      rating,
+      isRewatch,
+      isLiked: rating !== null && rating >= 4.5,
+      isDiaryLogged: true,
+      review,
+      reviewWordCount: wordCount,
+      tags,
+      lists: [],
+      letterboxdUri: uri
+    });
+  });
+
+  // Add review rows not in diary
+  reviewRows.forEach((r, idx) => {
+    const uri = (r['Letterboxd URI'] || '').trim();
+    if (uri && diaryUris.has(uri)) return;
+    const title = (r.Name || 'Untitled Film').trim();
+    const yr = parseInt(r.Year, 10) || 2020;
+    const fKey = `${title}::${yr}`;
+    loggedFilmKeys.add(fKey);
+
+    const review = cleanReviewText(r.Review || '');
+    const wordCount = review ? review.split(/\s+/).filter(Boolean).length : 0;
+    const rating = r.Rating ? parseFloat(r.Rating) : ratingsMap.get(fKey) ?? null;
+    const isRewatch = String(r.Rewatch || '').trim().toLowerCase() === 'yes';
+    const tags = String(r.Tags || '')
+      .split(',')
+      .map((t: string) => t.trim())
+      .filter(Boolean);
+    const watchedDate = (r['Watched Date'] || r.Date || '2024-01-01').trim();
+    const loggedDate = (r.Date || watchedDate).trim();
+    const meta = FILM_METADATA_MAP[title] || ['Independent / Auteur', 'English', 'Prestige Crime, Sci-Fi & Thrillers', 120];
+
+    records.push({
+      id: `upload-rev-${idx + 1}`,
+      title,
+      releaseYear: yr,
+      releaseDecade: getDecade(yr),
+      director: meta[0],
+      language: meta[1],
+      movement: meta[2],
+      runtimeMinutes: meta[3],
+      watchedDate,
+      loggedDate,
+      timestamp: new Date(watchedDate + 'T20:00:00'),
+      rating,
+      isRewatch,
+      isLiked: rating !== null && rating >= 4.5,
+      isDiaryLogged: true,
+      review,
+      reviewWordCount: wordCount,
+      tags,
+      lists: [],
+      letterboxdUri: uri
+    });
+  });
+
+  // Add catalog-only watched films
+  watchedRows.forEach((w, idx) => {
+    const title = (w.Name || '').trim();
+    const yr = parseInt(w.Year, 10) || 2020;
+    const fKey = `${title}::${yr}`;
+    if (!title || loggedFilmKeys.has(fKey)) return;
+    const watchedDate = (w.Date || '2022-01-01').trim();
+    const rating = ratingsMap.get(fKey) ?? null;
+    const meta = FILM_METADATA_MAP[title] || ['Independent / Auteur', 'English', 'Prestige Crime, Sci-Fi & Thrillers', 120];
+
+    records.push({
+      id: `upload-cat-${idx + 1}`,
+      title,
+      releaseYear: yr,
+      releaseDecade: getDecade(yr),
+      director: meta[0],
+      language: meta[1],
+      movement: meta[2],
+      runtimeMinutes: meta[3],
+      watchedDate,
+      loggedDate: watchedDate,
+      timestamp: new Date(watchedDate + 'T20:00:00'),
+      rating,
+      isRewatch: false,
+      isLiked: rating !== null && rating >= 4.5,
+      isDiaryLogged: false,
+      review: '',
+      reviewWordCount: 0,
+      tags: [],
+      lists: [],
+      letterboxdUri: (w['Letterboxd URI'] || '').trim()
+    });
+  });
+
+  return records.sort((a, b) => a.watchedDate.localeCompare(b.watchedDate));
 }
