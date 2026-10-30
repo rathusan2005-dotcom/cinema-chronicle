@@ -14,6 +14,7 @@ export interface FilmRecord {
   isRewatch: boolean;
   isLiked: boolean;      // Hearted in likes/films.csv
   isDiaryLogged: boolean; // True if in diary.csv/reviews.csv, false if catalog-only watched.csv
+  isImdbBackfill: boolean; // True if logged on or before 2022-10-26 (the IMDb migration dump)
   review: string;
   reviewWordCount: number;
   tags: string[];
@@ -79,9 +80,10 @@ export interface RathProfile {
 }
 
 export interface ArchiveStats {
-  totalDiaryScreenings: number;
-  totalCatalogRecords: number;
-  uniqueFilmsWatched: number;
+  totalBoxdFilms: number;       // All 477 unique films on Letterboxd
+  totalDiaryScreenings: number; // 484 dated diary logs
+  imdbBackfillCount: number;    // 177 films from the Oct 26, 2022 IMDb migration
+  organicBoxdCount: number;     // 307 organic post-migration logs
   totalHoursWatched: number;
   totalWrittenReviews: number;
   totalReviewWords: number;
@@ -157,16 +159,19 @@ export interface DirectorDossier {
   daysToSecondFilm: number;
   peakMonth: string;
   patternType: 'Auteur Obsession' | 'Comfort Pillar' | 'Marathon Binge';
+  psychoanalysis: string;
   filmographyLogs: DirectorFilmLog[];
   trajectoryCurve: number[];
 }
 
 export interface RewatchScreening {
   id: string;
+  filmTitle?: string;
   watchedDate: string;
   loggedDate: string;
   rating: number | null;
   isRewatch: boolean;
+  isImdbBackfill: boolean;
   review: string;
   reviewWordCount: number;
   tags: string[];
@@ -174,7 +179,9 @@ export interface RewatchScreening {
 }
 
 export interface RewatchAnchor {
+  id: string;
   title: string;
+  subtitle?: string;
   year: number;
   director: string;
   language: string;
@@ -185,9 +192,33 @@ export interface RewatchAnchor {
   avgRating: number;
   isLiked: boolean;
   isTopFour: boolean;
+  anchorKind: 'multi_rewatch' | 'duology' | 'childhood_revival';
+  psychoanalysis: string;
   allTags: string[];
   lists: string[];
   screenings: RewatchScreening[];
+}
+
+export interface FranchiseArc {
+  id: string;
+  title: string;
+  subtitle: string;
+  directorOrCreator: string;
+  bingeMode: 'all_in_one_go' | 'spread_over_time';
+  dateSpanLabel: string;
+  totalScreenings: number;
+  uniqueFilms: number;
+  avgRating: number;
+  psychoanalysis: string;
+  films: {
+    title: string;
+    year: number;
+    watchedDate: string;
+    rating: number | null;
+    tags: string[];
+    reviewSnippet?: string;
+    fullReview?: string;
+  }[];
 }
 
 export interface UserPersonalNote {

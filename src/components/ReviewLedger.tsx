@@ -21,7 +21,8 @@ import {
   RotateCcw,
   ExternalLink,
   PenLine,
-  Check
+  Check,
+  Brain
 } from 'lucide-react';
 
 interface ReviewLedgerProps {
@@ -38,7 +39,8 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
   const [subView, setSubView] = useState<'reviews' | 'lists' | 'comments' | 'watchlist'>('reviews');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [ratingFilter, setRatingFilter] = useState<'all' | '5' | '4.5+' | 'low'>('all');
+  const [selectedLexiconWord, setSelectedLexiconWord] = useState<string | null>(null);
+  const [ratingFilter, setRatingFilter] = useState<'all' | 'journal' | '5' | '4.5+' | 'low'>('all');
   const [sortBy, setSortBy] = useState<'longest' | 'newest' | 'highest' | 'oldest'>('longest');
   const [selectedReviewRecord, setSelectedReviewRecord] = useState<FilmRecord | null>(null);
   const [activeListId, setActiveListId] = useState<string>(PRELOADED_LISTS[0]?.id || 'movies-that-make-me-feel-something');
@@ -70,6 +72,67 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
 
   const tagStats = useMemo(() => computePersonalTagStats(records), [records]);
 
+  // Dynamic Review Lexicon Cloud (Normalized for elongated emphasis like CINEMAAA -> cinema)
+  const lexiconWords = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const ENGLISH_STOPWORDS = new Set([
+      'the', 'and', 'was', 'that', 'with', 'for', 'this', 'you', 'but', 'are', 'not', 'have',
+      'from', 'they', 'all', 'one', 'out', 'about', 'just', 'more', 'what', 'when', 'who', 'how',
+      'has', 'had', 'been', 'would', 'could', 'should', 'there', 'their', 'them', 'then', 'than',
+      'into', 'some', 'like', 'were', 'which', 'its', 'also', 'even', 'can', 'will', 'any', 'other',
+      'only', 'very', 'much', 'see', 'did', 'does', 'don', 'dont', 'didn', 'didnt', 'get', 'got',
+      'made', 'make', 'makes', 'watching', 'watched', 'watch', 'movie', 'film', 'films', 'movies',
+      'really', 'think', 'know', 'way', 'time', 'first', 'two', 'after', 'before', 'where', 'why',
+      'while', 'over', 'still', 'again', 'here', 'being', 'now', 'well', 'too', 'our', 'his', 'her',
+      'she', 'him', 'because', 'though', 'something', 'everything', 'anything', 'nothing', 'someone',
+      'everyone', 'anyone', 'many', 'most', 'such', 'own', 'same', 'say', 'said', 'down', 'back',
+      'always', 'never', 'ever', 'off', 'through', 'between', 'under', 'might', 'must', 'without',
+      'around', 'another', 'little', 'every', 'both', 'few', 'having', 'going', 'went', 'gone',
+      'take', 'took', 'taken', 'come', 'came', 'give', 'gave', 'given', 'look', 'looks', 'looked',
+      'saw', 'seen', 'tell', 'told', 'tells', 'need', 'thought', 'bit', 'lot', 'thing',
+      'things', 'end', "i'm", "it's", "that's", "there's", "what's", "who's", "he's", "she's",
+      "we're", "they're", "i've", "you've", "we've", "they've", "i'd", "you'd", "he'd",
+      "she'd", "we'd", "they'd", "i'll", "you'll", "he'll", "she'll", "we'll", "they'll"
+    ]);
+
+    reviewedRecords.forEach((r) => {
+      const clean = r.review.replace(/https?:\/\/\S+/g, '').replace(/[^\w\s']/g, ' ');
+      const rawWords = clean.split(/\s+/);
+
+      rawWords.forEach((raw) => {
+        let w = raw.toLowerCase().trim().replace(/^['"]+|['"]+$/g, '');
+        if (w.length < 3) return;
+        // Elongation normalization: collapse repeating letters 3+ (CINEMAAA -> cinema, peakkk -> peak, sooooo -> so)
+        w = w.replace(/(.)\1{2,}/g, '$1');
+        if (ENGLISH_STOPWORDS.has(w)) return;
+        if (/^\d+$/.test(w)) return;
+
+        counts[w] = (counts[w] || 0) + 1;
+      });
+    });
+
+    const entries = Object.entries(counts)
+      .filter(([_, count]) => count >= 4)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 65);
+
+    return entries.map(([word, count]) => {
+      let emotion: 'transcendent' | 'heartbreak' | 'comfort' | 'adrenaline' | 'cerebral' | 'classic' = 'classic';
+      if (['masterpiece', 'cinema', 'beautiful', 'god', 'perfection', 'art', 'transcendent', 'peak', 'goat', 'magic', 'poetic', 'incredible', 'amazing', 'brilliant', 'gorgeous', 'masterclass', 'genius', 'holy'].includes(word)) {
+        emotion = 'transcendent';
+      } else if (['cried', 'crying', 'tears', 'pain', 'hurt', 'hurts', 'broke', 'broken', 'depressed', 'depression', 'grief', 'loss', 'alone', 'sad', 'heartbreak', 'tear', 'cries', 'cry', 'bleed', 'ache', 'sorrow'].includes(word)) {
+        emotion = 'heartbreak';
+      } else if (['comfort', 'heal', 'healing', 'safe', 'warmth', 'home', 'gentle', 'hug', 'peace', 'peaceful', 'solace', 'soft', 'tender', 'love', 'pure', 'soul', 'feel', 'feeling'].includes(word)) {
+        emotion = 'comfort';
+      } else if (['chills', 'goosebumps', 'insane', 'crazy', 'fire', 'hype', 'mass', 'energy', 'scream', 'intense', 'wild', 'raw', 'visceral', 'shivers', 'rage', 'blast', 'unreal'].includes(word)) {
+        emotion = 'adrenaline';
+      } else if (['writing', 'directing', 'screenplay', 'score', 'music', 'acting', 'performance', 'monologue', 'dialogue', 'pacing', 'character', 'characters', 'direction', 'cinematography', 'soundtrack', 'visuals', 'sound'].includes(word)) {
+        emotion = 'cerebral';
+      }
+      return { word, count, emotion };
+    });
+  }, [reviewedRecords]);
+
   // Star distribution across all rated logs
   const starDistribution = useMemo(() => {
     const buckets = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
@@ -92,6 +155,22 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
     const q = searchQuery.trim().toLowerCase();
     const list = reviewedRecords.filter((r) => {
       if (selectedTag && !r.tags.includes(selectedTag)) return false;
+      if (selectedLexiconWord) {
+        const target = selectedLexiconWord.toLowerCase();
+        const reviewLower = r.review.toLowerCase();
+        const words = reviewLower.split(/\s+/).map((w) => w.replace(/[^\w]/g, '').replace(/(.)\1{2,}/g, '$1'));
+        if (!words.includes(target) && !reviewLower.includes(target)) {
+          return false;
+        }
+      }
+      if (
+        ratingFilter === 'journal' &&
+        !r.tags.some((t) => t.includes('journal')) &&
+        !(r.title === 'Monkey Man' && r.reviewWordCount > 300) &&
+        !(r.title === 'La La Land' && r.watchedDate === '2026-01-01')
+      ) {
+        return false;
+      }
       if (ratingFilter === '5' && r.rating !== 5) return false;
       if (ratingFilter === '4.5+' && (r.rating === null || r.rating < 4.5)) return false;
       if (ratingFilter === 'low' && (r.rating === null || r.rating > 2.5)) return false;
@@ -301,9 +380,111 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
           </div>
         </div>
 
+        {/* Sacred Star Curve Psychoanalysis */}
+        <div className="p-4 rounded-2xl bg-[#d4a359]/[0.06] border border-[#d4a359]/25 flex items-start gap-3">
+          <Brain className="w-5 h-5 text-[#d4a359] shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-tabular text-xs uppercase tracking-wider text-[#d4a359] font-semibold">
+              Psychological Diagnosis · The Sacred 5★ & The Guarded Heart
+            </span>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Your rating histogram reveals extreme emotional protection: you almost never log films below 2.5★ because you curate your viewing with meticulous care. Meanwhile, your 5★ pantheon ({records.filter(r => r.rating === 5).length} films) is an impenetrable emotional sanctuary—strictly reserved for films that touch romantic disillusionment, father-son grief, boyhood nostalgia, or transformative musical transcendence.
+            </p>
+          </div>
+        </div>
+
         {/* SUBVIEW A: WRITTEN REVIEWS CONTROLS (Rath's 19 Custom Tags + Sort) */}
         {subView === 'reviews' && (
-          <div className="space-y-4 pt-2">
+          <div className="space-y-5 pt-2">
+            {/* Interactive Review Lexicon Cloud (Emotional Word Bank) */}
+            <div className="p-5 rounded-2xl bg-black/40 border border-[var(--border-hairline)] space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#d4a359]" />
+                  <span className="font-tabular text-xs uppercase tracking-wider text-[var(--text-primary)] font-semibold">
+                    Review Lexicon Cloud · The Emotional Vocabulary of Your {reviewedRecords.length} Reviews
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 font-tabular text-[11px] text-[var(--text-muted)]">
+                  <span>Font size indicates usage frequency</span>
+                  {selectedLexiconWord && (
+                    <button
+                      onClick={() => setSelectedLexiconWord(null)}
+                      className="text-[#e05a47] hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <span>Clear word "{selectedLexiconWord}"</span>
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Emotional Legend */}
+              <div className="flex flex-wrap items-center gap-3 text-[10px] font-tabular border-b border-[var(--border-hairline)] pb-2.5 text-[var(--text-muted)]">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-[#d4a359]" /> Transcendent / Masterpiece
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-rose-400" /> Heartbreak / Crying
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" /> Comfort / Healing
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-400" /> Adrenaline / Hype
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-purple-400" /> Craft & Cerebral
+                </span>
+              </div>
+
+              {/* The Interactive Word Cloud */}
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 pt-1 max-h-52 overflow-y-auto pr-1">
+                {lexiconWords.map(({ word, count, emotion }) => {
+                  const isSelected = selectedLexiconWord === word;
+                  const sizeClass =
+                    count >= 25
+                      ? 'text-2xl font-bold font-editorial'
+                      : count >= 14
+                      ? 'text-lg font-semibold font-editorial'
+                      : count >= 8
+                      ? 'text-sm font-medium'
+                      : 'text-xs';
+
+                  const colorClass =
+                    emotion === 'transcendent'
+                      ? 'text-[#d4a359] hover:text-amber-200'
+                      : emotion === 'heartbreak'
+                      ? 'text-rose-400 hover:text-rose-300'
+                      : emotion === 'comfort'
+                      ? 'text-emerald-400 hover:text-emerald-300'
+                      : emotion === 'adrenaline'
+                      ? 'text-red-400 hover:text-red-300'
+                      : emotion === 'cerebral'
+                      ? 'text-purple-400 hover:text-purple-300'
+                      : 'text-[var(--text-secondary)] hover:text-white';
+
+                  return (
+                    <button
+                      key={word}
+                      onClick={() => setSelectedLexiconWord(isSelected ? null : word)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl transition-all cursor-pointer ${sizeClass} ${colorClass} ${
+                        isSelected
+                          ? 'bg-white/15 ring-1 ring-[#d4a359] shadow-lg scale-105'
+                          : 'bg-black/30 hover:bg-white/[0.08] border border-transparent hover:border-white/10'
+                      }`}
+                      title={`Used ${count} times across your reviews. Click to filter.`}
+                    >
+                      <span>{word}</span>
+                      <span className="font-tabular text-[10px] opacity-60 font-normal">
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Rath's Personal Tag Taxonomy */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -358,6 +539,7 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
                 {(
                   [
                     { id: 'all', label: 'All Ratings' },
+                    { id: 'journal', label: '📓 Personal Journals & Poems' },
                     { id: '5', label: '👑 5★ Pantheon' },
                     { id: '4.5+', label: '❤️ 4.5★+ Loved' },
                     { id: 'low', label: '💀 ≤2.5★ Rants' }

@@ -9,16 +9,13 @@ import {
   BarChart3,
   Flame,
   Film,
-  Heart,
-  Calendar
+  Heart
 } from 'lucide-react';
 import { ArchiveStats } from '../types';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  diaryOnly: boolean;
-  setDiaryOnly: (val: boolean) => void;
   theme: 'oled' | 'criterion';
   setTheme: (theme: 'oled' | 'criterion') => void;
   stats: ArchiveStats;
@@ -30,8 +27,6 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
-  diaryOnly,
-  setDiaryOnly,
   theme,
   setTheme,
   stats,
@@ -41,9 +36,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const tabs = [
     { id: 'river', label: 'River', fullLabel: 'River of Cinema', icon: Waves },
+    { id: 'sanctuary', label: 'Sanctuary', fullLabel: 'Rewatch Sanctuary', icon: Flame },
     { id: 'ledger', label: 'Reviews', fullLabel: 'Review Ledger', icon: BookOpen },
     { id: 'directors', label: 'Directors', fullLabel: 'The Rabbit Hole', icon: Compass },
-    { id: 'sanctuary', label: 'Sanctuary', fullLabel: 'Rewatch Sanctuary', icon: Flame },
     { id: 'lens', label: 'Velocity', fullLabel: 'Velocity Lens', icon: BarChart3 }
   ];
 
@@ -52,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Top Archival Masthead */}
       <header className="sticky top-0 z-30 w-full border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]/88 backdrop-blur-xl transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Left: Editorial Masthead + Inline Celluloid Telemetry */}
+          {/* Left: Editorial Masthead + Complete Boxd Telemetry */}
           <div className="flex flex-wrap items-baseline justify-between lg:justify-start gap-x-6 gap-y-2">
             <div className="flex items-baseline gap-2.5">
               <h1 className="font-editorial text-xl sm:text-2xl font-medium tracking-tight text-[var(--text-primary)]">
@@ -69,15 +64,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
 
-            {/* Inline Archival Telemetry */}
+            {/* Inline Archival Telemetry (No confusing toggle — displays all 477 Boxd films & 287 reviews) */}
             <div className="flex items-center flex-wrap gap-3 sm:gap-4 text-xs border-l border-[var(--border-hairline)] pl-3 sm:pl-5">
               <div>
                 <span className="font-tabular font-semibold text-[var(--text-primary)]">
-                  {diaryOnly ? stats.totalDiaryScreenings : stats.totalCatalogRecords}
+                  {stats.totalBoxdFilms}
                 </span>
-                <span className="text-[var(--text-muted)] ml-1">
-                  {diaryOnly ? 'diary logs' : 'total logs'}
+                <span className="text-[var(--text-muted)] ml-1">films on Boxd</span>
+              </div>
+              <span className="text-[var(--text-muted)]">·</span>
+              <div>
+                <span className="font-tabular font-semibold text-[var(--text-primary)]">
+                  {stats.totalDiaryScreenings}
                 </span>
+                <span className="text-[var(--text-muted)] ml-1">screenings</span>
               </div>
               <span className="text-[var(--text-muted)]">·</span>
               <div>
@@ -90,14 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
               <span className="text-[var(--text-muted)] hidden sm:inline">·</span>
-              <div className="hidden sm:block">
-                <span className="font-tabular font-semibold text-[#e05a47]">
-                  {stats.totalRewatchScreenings}
-                </span>
-                <span className="text-[var(--text-muted)] ml-1">rewatches</span>
-              </div>
-              <span className="text-[var(--text-muted)] hidden md:inline">·</span>
-              <div className="hidden md:flex items-center gap-1">
+              <div className="hidden sm:flex items-center gap-1">
                 <Heart className="w-3 h-3 text-rose-400 fill-rose-400/80" />
                 <span className="font-tabular font-semibold text-[var(--text-primary)]">
                   {stats.totalLikedFilms}
@@ -107,7 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Right: Dual Surface Mode Switcher, Diary/Catalog Toggle & CSV Ingest */}
+          {/* Right: Dual Surface Mode Switcher & CSV Ingest */}
           <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5 flex-wrap">
             {/* Dual Surface Mode Switcher: OLED Screening Room vs 35mm Criterion Archive */}
             <div
@@ -138,33 +131,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Film className="w-3 h-3 text-[#d4a359]" />
                 <span>35mm</span>
-              </button>
-            </div>
-
-            {/* Diary Only vs Full Catalog Master Switch */}
-            <div className="flex items-center p-0.5 rounded-full bg-white/[0.03] border border-[var(--border-hairline)]">
-              <button
-                onClick={() => setDiaryOnly(true)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                  diaryOnly
-                    ? 'bg-[#e05a47]/20 text-[#f4f0ea] border border-[#e05a47]/40'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                }`}
-                title="Exact dated screenings from diary.csv + reviews.csv"
-              >
-                <Calendar className="w-3 h-3 text-[#d4a359]" />
-                <span>Diary ({stats.totalDiaryScreenings})</span>
-              </button>
-              <button
-                onClick={() => setDiaryOnly(false)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                  !diaryOnly
-                    ? 'bg-white/10 text-white'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                }`}
-                title="Includes +70 unlogged watched/rated catalog films"
-              >
-                <span>All ({stats.totalCatalogRecords})</span>
               </button>
             </div>
 

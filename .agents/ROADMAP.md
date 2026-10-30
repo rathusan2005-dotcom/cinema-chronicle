@@ -17,8 +17,10 @@
 - [x] **The Review Ledger**: Criterion Reading Room for Rath's 287 written reviews (550KB prose), 19 custom diary tags (`fav review`, `journal 📝`, `made me cry`, `comfort movie 🍿🤗`, `literally me`, etc.), 5 Curated Lists (`grieving`, `movies that make me feel something`, `ssd movies`, `review backlog`), and 754 Comments.
 - [x] **The Rabbit Hole (Director & Auteur Dossiers)**: Gateway Spark vs Crown Opus, Binge Velocity Score, and chronological screening logs across all directors.
 - [x] **The Rewatch Sanctuary**: Dedicated 11-Screening *La La Land* Odyssey timeline (2022–2026) + multi-screening review comparator across all comfort rewatches.
-- [x] **The Velocity Lens**: Multi-scale Year ➔ Month ➔ Screening scrubber, Single-Day Double/Triple Feature detector, and Social Companion breakdown (`niko`, `with niki 🎥`, `delsya`, `nadu !`).
+- [x] **The Velocity Lens**: Multi-scale Year ➔ Month ➔ Screening scrubber, Single-Day Double/Triple Feature detector (excluding pre-Oct 2022 IMDb backfill), and Social Companion breakdown (`With Niko / Niki` 83 logs, `delsya`, `nadu !`).
+- [x] **Rewatch Sanctuary**: Duology exhibits (*SSE*, *Bāhubali*), binge runs vs universe arcs, childhood revivals, and Vaanu's *Aftersun* memorial & *grieving* list.
+- [x] **Cinephile Psychoanalysis Engine**: Deep psychological mirrors across Auteurs, the Sacred 5★ Rating Curve, and Year-by-Year Cadence (2024 torrent, 2025 peak, 2026 rest).
+- [x] **Review Lexicon Cloud (Emotional Word Bank)**: Dynamic word frequency cloud with emphatic elongation normalization (`CINEMAAA` -> `cinema`), stopword filtering, 5 emotional palettes, and live 1-click review filtering.
 
 ## 🎨 Phase 4: Next Refinements & Interactive Polish
 - [ ] **Poster Artwork / Visual Stills Integration**: Optional client-side TMDB/Letterboxd poster artwork fetcher or custom still cards.
-- [ ] **Vocabulary & Sentiment Deep-Dive**: Recurring phrase & emotional lexicon cloud from Rath's 287 reviews.

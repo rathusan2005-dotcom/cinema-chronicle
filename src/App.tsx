@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { FilmRecord } from './types';
 import { getPreloadedFilmRecords } from './lib/letterboxdArchive';
-import { computeArchiveStats, filterFilmRecords } from './lib/analytics';
+import { computeArchiveStats } from './lib/analytics';
 import { Navbar } from './components/Navbar';
 import { EraStreamgraph } from './components/EraStreamgraph';
 import { ReviewLedger } from './components/ReviewLedger';
 import { DiscoverySpikes } from './components/DiscoverySpikes';
-import { OnRepeat } from './components/OnRepeat';
+import { RewatchSanctuary } from './components/RewatchSanctuary';
 import { GranularTimeline } from './components/GranularTimeline';
 import { UploadModal } from './components/UploadModal';
 import { loadArchiveFromDB, saveArchiveToDB, clearArchiveFromDB } from './lib/storage';
@@ -15,7 +15,6 @@ export function App() {
   const [records, setRecords] = useState<FilmRecord[]>(() => getPreloadedFilmRecords());
   const [isCustomData, setIsCustomData] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('river');
-  const [diaryOnly, setDiaryOnly] = useState<boolean>(true);
   const [theme, setTheme] = useState<'oled' | 'criterion'>(() => {
     try {
       const saved = localStorage.getItem('cinema_chronicle_theme');
@@ -49,12 +48,8 @@ export function App() {
   }, [theme]);
 
   const stats = useMemo(() => {
-    return computeArchiveStats(records, diaryOnly);
-  }, [records, diaryOnly]);
-
-  const filteredRecords = useMemo(() => {
-    return filterFilmRecords(records, diaryOnly);
-  }, [records, diaryOnly]);
+    return computeArchiveStats(records);
+  }, [records]);
 
   const handleCustomDataLoaded = (newRecords: FilmRecord[], filename: string = 'Letterboxd Export') => {
     setRecords(newRecords);
@@ -80,8 +75,6 @@ export function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        diaryOnly={diaryOnly}
-        setDiaryOnly={setDiaryOnly}
         theme={theme}
         setTheme={setTheme}
         stats={stats}
@@ -94,8 +87,7 @@ export function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-28 space-y-12">
         {activeTab === 'river' && (
           <EraStreamgraph
-            records={filteredRecords}
-            diaryOnly={diaryOnly}
+            records={records}
             onSelectFilmReview={handleJumpToFilmReview}
           />
         )}
@@ -110,13 +102,13 @@ export function App() {
 
         {activeTab === 'directors' && (
           <DiscoverySpikes
-            records={filteredRecords}
+            records={records}
             onOpenReview={handleJumpToFilmReview}
           />
         )}
 
         {activeTab === 'sanctuary' && (
-          <OnRepeat
+          <RewatchSanctuary
             records={records}
             onOpenReview={handleJumpToFilmReview}
           />
@@ -125,7 +117,6 @@ export function App() {
         {activeTab === 'lens' && (
           <GranularTimeline
             records={records}
-            diaryOnly={diaryOnly}
             onOpenReview={handleJumpToFilmReview}
           />
         )}

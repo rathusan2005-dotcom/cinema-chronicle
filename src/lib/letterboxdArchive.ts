@@ -24881,6 +24881,7 @@ const RAW_ARCHIVE = [
 export function getPreloadedFilmRecords(): FilmRecord[] {
   return RAW_ARCHIVE.map((r) => ({
     ...r,
+    isImdbBackfill: r.loggedDate <= '2022-10-26',
     timestamp: new Date(r.watchedDate + 'T20:00:00')
   }));
 }

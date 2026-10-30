@@ -21,7 +21,6 @@ import {
 
 interface EraStreamgraphProps {
   records: FilmRecord[];
-  diaryOnly: boolean;
   onSelectFilmReview?: (filmTitle: string) => void;
 }
 
@@ -33,10 +32,20 @@ export const EraStreamgraph: React.FC<EraStreamgraphProps> = ({
   const [granularity, setGranularity] = useState<'quarter' | 'month'>('quarter');
   const [resolution, setResolution] = useState<CurrentResolution>('nuanced');
   const [saliencyCap, setSaliencyCap] = useState<number>(5);
+  const [excludeImdbBackfill, setExcludeImdbBackfill] = useState<boolean>(false);
   const [hoveredPeriod, setHoveredPeriod] = useState<string | null>(null);
   const [selectedCurrentId, setSelectedCurrentId] = useState<string | null>(null);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  // Leave the 70 undated watched.csv entries out of the chronological streamgraph automatically
+  const datedStreamRecords = useMemo(() => {
+    return records.filter((r) => {
+      if (!r.isDiaryLogged) return false;
+      if (excludeImdbBackfill && r.isImdbBackfill) return false;
+      return true;
+    });
+  }, [records, excludeImdbBackfill]);
 
   const activeCurrents = useMemo(() => getActiveCinemaCurrents(resolution), [resolution]);
   const emergentEras = useMemo(() => computeEmergentEras(records), [records]);
@@ -51,7 +60,7 @@ export const EraStreamgraph: React.FC<EraStreamgraphProps> = ({
       currentTotals[c.id] = 0;
     });
 
-    const sorted = [...records].sort((a, b) => a.watchedDate.localeCompare(b.watchedDate));
+    const sorted = [...datedStreamRecords].sort((a, b) => a.watchedDate.localeCompare(b.watchedDate));
 
     sorted.forEach((r) => {
       const yr = parseInt(r.watchedDate.slice(0, 4), 10);
@@ -134,7 +143,7 @@ export const EraStreamgraph: React.FC<EraStreamgraphProps> = ({
       displayedCurrents: finalCurrents,
       periodTopFilms: pFilms
     };
-  }, [records, metric, granularity, resolution, saliencyCap, activeCurrents]);
+  }, [datedStreamRecords, metric, granularity, resolution, saliencyCap, activeCurrents]);
 
   const width = 1040;
   const height = 390;
@@ -323,6 +332,31 @@ export const EraStreamgraph: React.FC<EraStreamgraphProps> = ({
                   {g === 'quarter' ? 'Quarterly' : 'Monthly'}
                 </button>
               ))}
+            </div>
+
+            {/* IMDb Backfill Scope Switcher */}
+            <div className="flex items-center bg-black/40 p-1 rounded-full border border-[var(--border-hairline)]">
+              <button
+                onClick={() => setExcludeImdbBackfill(false)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                  !excludeImdbBackfill
+                    ? 'bg-white/12 text-white'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                }`}
+              >
+                Full 2021–2026
+              </button>
+              <button
+                onClick={() => setExcludeImdbBackfill(true)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                  excludeImdbBackfill
+                    ? 'bg-amber-500/20 text-amber-200 border border-amber-500/35'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                }`}
+                title="Excludes the 177 pre-Oct 26, 2022 IMDb retrospective import logs"
+              >
+                Post-IMDb Only (Nov '22+)
+              </button>
             </div>
 
             {/* Metric Switcher */}

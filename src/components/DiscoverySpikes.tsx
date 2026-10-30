@@ -12,7 +12,8 @@ import {
   BookOpen,
   X,
   RotateCcw,
-  Zap
+  Zap,
+  Brain
 } from 'lucide-react';
 
 interface DiscoverySpikesProps {
@@ -178,6 +179,19 @@ export const DiscoverySpikes: React.FC<DiscoverySpikesProps> = ({
                   </p>
                 </div>
               </div>
+
+              {/* Psychoanalytical Insight Snippet */}
+              <div className="p-3 rounded-2xl bg-[#d4a359]/[0.05] border border-[#d4a359]/20 space-y-1">
+                <div className="flex items-center gap-1.5 text-[#d4a359]">
+                  <Brain className="w-3 h-3 shrink-0" />
+                  <span className="font-tabular text-[9px] uppercase tracking-wider font-semibold">
+                    Psychological Mirror
+                  </span>
+                </div>
+                <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
+                  {d.psychoanalysis}
+                </p>
+              </div>
             </div>
 
             {/* Bottom Telemetry Bar */}
@@ -269,6 +283,19 @@ export const DiscoverySpikes: React.FC<DiscoverySpikesProps> = ({
                   {selectedDossier.reviewCount}
                 </p>
               </div>
+            </div>
+
+            {/* Psychological Mirror Dossier Plate */}
+            <div className="p-4 rounded-2xl bg-[#d4a359]/10 border border-[#d4a359]/30 space-y-1.5">
+              <div className="flex items-center gap-2 text-[#d4a359]">
+                <Brain className="w-4 h-4 shrink-0" />
+                <span className="font-tabular text-xs uppercase tracking-wider font-semibold">
+                  Psychological Mirror · What {selectedDossier.director} Unlocks in Rath
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed">
+                {selectedDossier.psychoanalysis}
+              </p>
             </div>
 
             {/* Chronological Screening Log */}

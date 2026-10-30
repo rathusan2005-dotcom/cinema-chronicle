@@ -11,12 +11,12 @@ import {
   BookOpen,
   RotateCcw,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Brain
 } from 'lucide-react';
 
 interface GranularTimelineProps {
   records: FilmRecord[];
-  diaryOnly: boolean;
   onOpenReview?: (filmTitle: string) => void;
 }
 
@@ -84,11 +84,12 @@ export const GranularTimeline: React.FC<GranularTimelineProps> = ({
     });
   }, [diaryRecords, selectedYear]);
 
-  // 3. Double / Triple Feature Marathon Days (2+ films watched on the exact same date)
+  // 3. Genuine Post-IMDb Double / Triple Feature Marathon Days (2+ films watched on the exact same date after 2022-10-26)
   const marathonDays = useMemo(() => {
     const byDate = new Map<string, FilmRecord[]>();
     diaryRecords.forEach((r) => {
-      // Skip 2022-10-26 bulk backfill date if watchedDate was used
+      // Strictly exclude all pre-Oct 26, 2022 IMDb retrospective backfill entries
+      if (r.isImdbBackfill || r.watchedDate <= '2022-10-26') return;
       const list = byDate.get(r.watchedDate) || [];
       list.push(r);
       byDate.set(r.watchedDate, list);
@@ -109,20 +110,40 @@ export const GranularTimeline: React.FC<GranularTimelineProps> = ({
     return days.sort((a, b) => b.count - a.count || b.date.localeCompare(a.date)).slice(0, 18);
   }, [diaryRecords]);
 
-  // 4. Social Companions Breakdown (from Rath's diary tags)
+  // 4. Social Companions Breakdown (Unifying Niko & Niki into Rath's #1 cinema partner)
   const companionGroups = useMemo(() => {
     const companions = [
-      { tag: 'niko', label: 'With Niko', emoji: '🎬', desc: '56 shared screenings & watch parties' },
-      { tag: 'with niki 🎥', label: 'With Niki', emoji: '🎥', desc: '27 cinema & movie night memories' },
-      { tag: 'delsya', label: 'With Delsya', emoji: '✨', desc: '9 screenings together' },
-      { tag: 'nadu !', label: 'With Nadu', emoji: '🍿', desc: '7 movie nights (incl. La La Land initiation!)' },
-      { tag: 'karry potturr', label: 'Karry Potturr Marathon', emoji: '⚡', desc: 'Wizarding World binge run' }
+      {
+        tags: ['niko', 'with niki 🎥'],
+        label: 'With Niko / Niki',
+        emoji: '🎬',
+        desc: '83 shared screenings & watch parties — your undisputed #1 cinema partner'
+      },
+      {
+        tags: ['delsya'],
+        label: 'With Delsya',
+        emoji: '✨',
+        desc: '9 screenings together'
+      },
+      {
+        tags: ['nadu !'],
+        label: 'With Nadu',
+        emoji: '🍿',
+        desc: '7 movie nights (incl. La La Land initiation!)'
+      },
+      {
+        tags: ['karry potturr'],
+        label: 'Karry Potturr Marathon',
+        emoji: '⚡',
+        desc: 'Wizarding World binge run'
+      }
     ];
 
     return companions.map((c) => {
-      const logs = diaryRecords.filter((r) => r.tags.includes(c.tag));
+      const logs = diaryRecords.filter((r) => c.tags.some((t) => r.tags.includes(t)));
       return {
         ...c,
+        tag: c.tags[0],
         count: logs.length,
         films: logs
       };
@@ -140,6 +161,39 @@ export const GranularTimeline: React.FC<GranularTimelineProps> = ({
     const nonZero = [...monthBuckets].sort((a, b) => b.screenings - a.screenings)[0];
     return nonZero || null;
   }, [monthBuckets, selectedMonth]);
+
+  const YEAR_PSYCHOANALYSIS: Record<string, { title: string; narrative: string }> = {
+    '2021': {
+      title: 'The Pre-Boxd Awakening (IMDb Retrospective Import)',
+      narrative:
+        'Screenings logged during peak lockdown and childhood memory. Reflects foundational Hollywood high-concept thrillers, childhood staples, and comfort cinema before systematic Letterboxd logging began.'
+    },
+    '2022': {
+      title: 'The Gateway & The Genesis of the Letterboxd Era',
+      narrative:
+        'On 26 Oct 2022, 177 retrospective IMDb logs were imported into Letterboxd. Immediately following this was your first transformative screening of La La Land—the catalyst that permanently rewrote your emotional relationship with movies.'
+    },
+    '2023': {
+      title: 'The Incubation Period & Palate Maturation',
+      narrative:
+        'A steady, deliberate cadence of 21 films exploring modern Indian cinema, festival darlings, and repeat comfort screenings as your critical and emotional palate matured.'
+    },
+    '2024': {
+      title: 'The Cinephile Explosion & Escapist Torrent (144 films · 300+ hrs)',
+      narrative:
+        'A breathtaking cinematic supernova. Movies became your primary sanctuary and emotional processing center. You dove headfirst into auteur marathons, Tamil New Wave grit, and shared cinema nights with friends (over 50 screenings with Niko).'
+    },
+    '2025': {
+      title: 'The High-Stakes Supernova (112 films · 240+ hrs)',
+      narrative:
+        'Total emotional mastery of the archive. You logged the Before Trilogy in 3 days, binged the 8-film Harry Potter run, celebrated La La Land in 35mm and at the Royal Albert Hall with a live orchestra, and wrote your longest, most vulnerable reviews.'
+    },
+    '2026': {
+      title: 'The Grief, Burnout & Rest Sanctuary (16 films)',
+      narrative:
+        'In January 2026, you suffered the profound loss of your cat Vaanu, entering a deep depressive spiral and severe cinema burnout. Cinema Chronicle honors this period not as a failure of productivity, but as a tender, necessary season of healing, grieving, and rest.'
+    }
+  };
 
   return (
     <div className="space-y-10">
@@ -210,6 +264,11 @@ export const GranularTimeline: React.FC<GranularTimelineProps> = ({
                       Peak
                     </span>
                   )}
+                  {(yb.year === '2021' || yb.year === '2022') && (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-tabular uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      IMDb Dump
+                    </span>
+                  )}
                   {yb.year === '2026' && (
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-tabular uppercase bg-sky-500/15 text-sky-300 border border-sky-500/30">
                       Rest
@@ -229,6 +288,21 @@ export const GranularTimeline: React.FC<GranularTimelineProps> = ({
             );
           })}
         </div>
+
+        {/* Psychological Mirror: Year-by-Year Emotional Cadence */}
+        {YEAR_PSYCHOANALYSIS[selectedYear] && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#d4a359]/[0.08] border border-[#d4a359]/25 space-y-1.5">
+            <div className="flex items-center gap-2 text-[#d4a359]">
+              <Brain className="w-4 h-4 shrink-0" />
+              <span className="font-tabular text-xs uppercase tracking-wider font-semibold">
+                Psychological Mirror · {selectedYear}: {YEAR_PSYCHOANALYSIS[selectedYear].title}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed">
+              {YEAR_PSYCHOANALYSIS[selectedYear].narrative}
+            </p>
+          </div>
+        )}
 
         {/* 12-Month Bar Chart for Selected Year */}
         <div className="pt-4 border-t border-[var(--border-hairline)] space-y-4">
@@ -399,15 +473,18 @@ export const GranularTimeline: React.FC<GranularTimelineProps> = ({
         </div>
       </section>
 
-      {/* 3. High-Density Marathon Days (2, 3+ Movies in a Single Day) */}
+      {/* 3. High-Density Marathon Days (2, 3+ Movies in a Single Day — Post-IMDb Backfill Only) */}
       <section className="space-y-4">
         <div>
           <p className="font-tabular text-[11px] uppercase tracking-[0.2em] text-[#d4a359]">
-            III · Single-Day Double & Triple Features
+            III · Genuine Single-Day Double & Triple Features (Post-IMDb Import Only)
           </p>
           <h3 className="font-editorial text-2xl text-[var(--text-primary)]">
-            Peak Marathon Days (Back-to-Back Screenings)
+            Real Peak Marathon Days (Excluding the Oct 26, 2022 IMDb Backfill Dump)
           </h3>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            All 177 retrospective IMDb logs imported on or before 26 Oct 2022 are filtered out so only your real back-to-back Letterboxd marathon days appear here.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
