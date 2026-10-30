@@ -1,29 +1,24 @@
-# 🗺️ Sonic Chronicle — Active Roadmap
+# 🗺️ Cinema Chronicle — Active Roadmap
 
-## 🎯 Phase 1: Core Feature Breakdown & Analytical Engines (Current Focus)
-- [x] **River of Sound**: Symmetric Lee Byron streamgraph with monthly fluctuations & quarterly macro views.
-- [x] **Concurrent Currents Balance**: Real-time percentage breakdowns of overlapping musical eras + Crossover Detection.
-- [x] **First Contact & Binge Velocity**: Exact calendar discovery timestamps, BVI formula (7d/14d/30d), and discography friction.
-- [x] **Artist Lifecycle Dossier ("The Rabbit Hole")**: Gateway spark vs All-time crown track, share of ear %, and 30-day velocity trajectory.
-- [x] **24-Hour Circadian Mood Matrix**: 7×24 day-hour density matrix with time-of-day acoustic profiles.
-- [x] **On Repeat & Hyperfixations**: 24-hour single-day loop spikes, multi-scale heavy rotation leaderboards, and personal memory attachments.
-- [ ] **Journal & Mood Sync (Future Milestone)**: Dormant comfort blanket correlation engine awaiting text/voice journal input.
-- [x] **Multi-Scale Granular Scrubber & Source Attribution**: Dedicated Timeline Lens zooming across years ➔ months ➔ weeks ➔ days with source mode attribution (Albums vs Playlists vs Search vs Radio).
-- [ ] **Taste Crossings (Shelved)**: Recommender code preserved dormant in repo to prioritize pure analytical self-discovery.
-- [ ] **Apple Music CSV Parser Hardening**: Finalize parser and schema validation once Rath's official export file arrives.
+## 🚀 Phase 1: Repository Setup & Mobile PWA Pipeline (Current Focus)
+- [ ] **GitHub Remote Connection**: Link local repo to GitHub (`rathusan2005-dotcom/cinema_chronicle`) & push `main`.
+- [ ] **Vercel Continuous Deployment**: Wire GitHub repo to Vercel for continuous deployment to mobile.
+- [ ] **iPhone PWA Meta & Branding**: Update `index.html` and `package.json` for seamless iOS "Add to Home Screen" launch.
+- [ ] **Clean Build Verification**: Ensure zero-error Vite build pipeline (`npm run build`).
 
-## 🚀 Phase 2: Deployment & Git / Vercel Pipeline
-- [x] Initialize GitHub remote repository & push baseline code.
-- [x] Connect repository to Vercel for continuous live deployment.
-- [x] **Local persistence layer (IndexedDB)**: Preserves custom imported records, cleanser rules, and personal liner notes permanently across browser sessions and reloads.
-- [ ] Optional Live Scrobble bridge (Last.fm API / Webhook integration for post-export real-time plays).
+## 📥 Phase 2: Letterboxd Parser & Local Ingestion Engine
+- [ ] **Letterboxd Multi-File CSV Parser**: Ingest and reconcile `diary.csv`, `reviews.csv`, `ratings.csv`, and `watched.csv`.
+- [ ] **Client-Side IndexedDB Storage**: Persist ingested movie records, written reviews, and custom settings locally with 100% privacy.
+- [ ] **Cinematic Mock Dataset**: Generate authentic Letterboxd sample records reflecting Rath's 2024–2025 marathon era (~300+ films) and 2026 cooldown (~16 films).
 
-## 🎨 Phase 3: "The Liquid Archive" UI & Dynamic Currents Overhaul (v0.2.0 BETA)
-- [x] **Dual-Theme Surface Engine**: Live toggle between **OLED Midnight (`#000000`)** and **Vinyl Archive (`#11100d`)**.
-- [x] **Floating Liquid-Glass Bottom Pill Dock**: Apple-inspired refractive glass dock (`backdrop-filter: blur(28px) saturate(190%)`, specular inset borders, `>=44pt` touch targets).
-- [x] **Dynamic Pure Sonic Currents & Top-N Saliency Engine**: 8 pure musical currents separating Tamil Indie Soul/R&B (`Akshara`, `Bebhumika`) from Tamil Rap & Drill (`JanZee Official`, `IFT PROD`), with Top 3/4/5 Saliency Cap and Nuanced/Balanced/Broad genre resolution.
-- [x] **Emergent Life Eras (Chapters I–IV)**: Mathematical synthesis of chronological chapters from co-dominant currents.
+## 🎞️ Phase 3: The 5 Core Visualizations
+- [ ] **The River of Cinema (Streamgraph)**: Symmetric silhouette streamgraph tracking release decades and film languages across time.
+- [ ] **The Review Ledger**: Deep-dive into Rath's written reviews (`reviews.csv`), star distributions, recurring motifs, and favorite quotes.
+- [ ] **The Rabbit Hole (Director & Franchise Arcs)**: Discovery velocity, Gateway film vs Crown Masterpiece, and director binging trajectories.
+- [ ] **The Rewatch Sanctuary**: Comfort vault filtering `Rewatch = 'Yes'` for films revisited during emotional/stressful periods.
+- [ ] **The 2024–2025 Velocity Lens**: Multi-scale timeline scrubber (Year ➔ Month ➔ Week ➔ Day) revealing peak marathon weekends.
 
-## 🕰️ Phase 4: Sensory Archaeology & Audio Previews (v0.2.1 BETA)
-- [x] **The Relic Vault (Dormant Bangers)**: Identifies past loop spikes and high-velocity binge tracks in hibernation (>200 days unplayed) sorted by days silent or peak volume.
-- [x] **30-Second iTunes Audio Preview Bridge**: Client-side unauthenticated AAC stream preview player with floating island controls and track card play buttons.
+## 🎨 Phase 4: Aesthetic Craft & 35mm Celluloid System
+- [ ] **Dual Surface Modes**: OLED Screening Room (`#000000`) and Criterion Archive (`#0d0c0a`).
+- [ ] **Typography & Aspect Ratios**: 2.39:1 / 1.85:1 celluloid poster cards, `Newsreader` editorial serifs, `JetBrains Mono` telemetry.
+- [ ] **Floating Liquid Bottom Dock**: Touch-first ergonomic pill dock with tactile haptics.
