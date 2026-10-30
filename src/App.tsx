@@ -84,7 +84,7 @@ export function App() {
       />
 
       {/* Main Content Area — Immediate First-Viewport Immersion */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6 pb-28 space-y-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 pt-4 sm:pt-6 pb-36 sm:pb-40 space-y-8 sm:space-y-12">
         {activeTab === 'river' && (
           <EraStreamgraph
             records={records}
@@ -130,7 +130,7 @@ export function App() {
       />
 
       {/* Archival Colophon Footer */}
-      <footer className="border-t border-[var(--border-hairline)] bg-[var(--bg-canvas)] pt-6 pb-28 text-xs text-[var(--text-muted)]">
+      <footer className="border-t border-[var(--border-hairline)] bg-[var(--bg-canvas)] pt-6 pb-36 sm:pb-32 text-xs text-[var(--text-muted)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#d4a359]" />

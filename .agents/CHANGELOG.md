@@ -8,6 +8,17 @@
 
 ## 🧪 Active Beta & Iterative Updates
 
+### 📱 Cinema Chronicle v0.3.1 BETA — Sanctuary Quick-Jump, Review Truncation & Vulnerability Milestones — *2026-10-30*
+
+Refined mobile accessibility, reading ergonomics, and psychological depth based on Rath's testing on iPhone 16 Pro:
+
+- ⚡ **Sanctuary Quick-Jump Navigator & Section Clamping**: Added a sticky in-page sub-navigation bar to jump instantly between *La La Land*, *Comfort Vault*, *Series & Universes*, and *Vaanu's Sanctuary*. Collapsed the 11-Chapter Odyssey and clamped the Comfort Vault to an initial 4 exhibits with a 1-click expand toggle to eliminate endless vertical mobile scrolling.
+- 📖 **Comparison Modal Review Truncation**: Truncated all screening reviews inside the multi-screening modal to 3 lines (`line-clamp-3`) with tactile `Read full review ({wordCount} words) ↓` / `Collapse review ↑` toggles, preventing massive 2,000-word walls of text from blowing out the modal viewport.
+- 🧠 **Vulnerability Milestones Exhibit**: Created a dedicated retrospective in the Reviews tab highlighting Rath's 6 most raw, life-intersecting reviews (*Vaaranam Aayiram* saving his life, *Monkey Man* gym therapy, *SSE* heartbreak, *La La Land* theatrical tears, New Year's Day 2026 audit, and *Aftersun* elegy for Vaanu) paired with third-party psychological commentary.
+- 📱 **iPhone 16 Pro Spacing Polish**: Expanded bottom clearance to `pb-36 sm:pb-40`, tightened mobile card margins, and tuned modal viewports to `max-h-[84vh]` for thumb-friendly one-handed navigation.
+
+---
+
 ### 🧠 Cinema Chronicle v0.3.0 BETA — The Sanctuary, Lexicon Density Cloud & Psychoanalysis Engine — *2026-10-30*
 
 This milestone unifies Rath's real-life Letterboxd intake data with a comprehensive third-party psychological analysis engine and interactive review vocabulary intelligence, turning Cinema Chronicle into an intimate, high-aesthetic mirror of how he processes life, grief, and connection through celluloid.

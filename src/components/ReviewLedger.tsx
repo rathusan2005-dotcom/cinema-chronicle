@@ -40,6 +40,7 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedLexiconWord, setSelectedLexiconWord] = useState<string | null>(null);
+  const [isVulnerabilityExpanded, setIsVulnerabilityExpanded] = useState<boolean>(true);
   const [ratingFilter, setRatingFilter] = useState<'all' | 'journal' | '5' | '4.5+' | 'low'>('all');
   const [sortBy, setSortBy] = useState<'longest' | 'newest' | 'highest' | 'oldest'>('longest');
   const [selectedReviewRecord, setSelectedReviewRecord] = useState<FilmRecord | null>(null);
@@ -483,6 +484,133 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
                   );
                 })}
               </div>
+            </div>
+
+            {/* Vulnerability Milestones · Life Recorded on Celluloid */}
+            <div className="p-5 rounded-2xl bg-[#d4a359]/[0.05] border border-[#d4a359]/25 space-y-3.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-[#d4a359]" />
+                  <span className="font-tabular text-xs uppercase tracking-wider text-[#d4a359] font-semibold">
+                    Vulnerability Milestones · Life Chronicled Across 6 Pivotal Reviews
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsVulnerabilityExpanded(!isVulnerabilityExpanded)}
+                  className="text-[11px] font-tabular text-[var(--text-muted)] hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <span>{isVulnerabilityExpanded ? 'Collapse Milestones ↑' : 'Expand 6 Milestones ↓'}</span>
+                </button>
+              </div>
+
+              {isVulnerabilityExpanded && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                  {[
+                    {
+                      title: 'Vaaranam Aayiram',
+                      date: '2021-09-08',
+                      year: 2008,
+                      rating: 5,
+                      quote: '"this movie genuinely saved my life"',
+                      tagline: 'Boyhood, grief & the father-son anchor',
+                      psychoanalysis:
+                        'The baseline of your emotional architecture: cinema as a lifeline. You returned to Surya and Krishnan to rebuild your sense of resilience from the ashes.',
+                      filmTitle: 'Vaaranam Aayiram'
+                    },
+                    {
+                      title: 'Monkey Man',
+                      date: '2024-04-06',
+                      year: 2024,
+                      rating: 4.5,
+                      quote: '"watched this when my mental health was in the gutter... physical gym as salvation"',
+                      tagline: 'Channeling visceral pain into discipline',
+                      psychoanalysis:
+                        'A raw confessional where film review dissolved into personal journal: documenting physical training and action cinema to claw out of a deep depressive trough.',
+                      filmTitle: 'Monkey Man'
+                    },
+                    {
+                      title: 'Sapta Sagaradaache Ello',
+                      date: '2024-11-20',
+                      year: 2023,
+                      rating: 5,
+                      quote: '"ocean-deep longing and self-sabotage... hurts in places i forgot existed"',
+                      tagline: 'The anatomy of romantic heartbreak & guilt',
+                      psychoanalysis:
+                        'Diagnoses your deepest romantic vulnerability—the agony of permanent separation, unspoken remorse, and love thwarted by circumstance.',
+                      filmTitle: 'Sapta Sagaradaache Ello - Side A'
+                    },
+                    {
+                      title: 'La La Land (Theatrical)',
+                      date: '2025-07-11',
+                      year: 2016,
+                      rating: 5,
+                      quote: '"finally seeing it where it belongs in a cinema... cried like a baby"',
+                      tagline: 'The sacred pilgrimage to your patron saint',
+                      psychoanalysis:
+                        'After 10 digital watches, sitting in theatrical darkness allowed you to surrender to catharsis without shame, defenses, or restraint.',
+                      filmTitle: 'La La Land'
+                    },
+                    {
+                      title: "La La Land (New Year's)",
+                      date: '2026-01-01',
+                      year: 2016,
+                      rating: 5,
+                      quote: '"entering 2026 reflecting on growth, loneliness, and cautious hope"',
+                      tagline: 'The annual life audit & existential checkpoint',
+                      psychoanalysis:
+                        'Using Sebastian and Mia as your personal emotional mirror every January 1st to assess how much you have grown, what you have lost, and what dreams remain.',
+                      filmTitle: 'La La Land'
+                    },
+                    {
+                      title: 'Aftersun (Elegy for Vaanu)',
+                      date: '2026-01-26',
+                      year: 2022,
+                      rating: 4,
+                      quote: '"dear vaanu, how lucky was i, to feel the pressure of your paws..."',
+                      tagline: 'Transmuting unbearable loss into eternal poetry',
+                      psychoanalysis:
+                        'The peak of vulnerability in your archive: casting aside film criticism entirely to transform Letterboxd into an eternal memorial for your cat Vaanu.',
+                      filmTitle: 'Aftersun'
+                    }
+                  ].map((m) => (
+                    <div
+                      key={m.date}
+                      onClick={() => {
+                        const rec = records.find(
+                          (r) =>
+                            r.title.toLowerCase() === m.filmTitle.toLowerCase() &&
+                            (r.watchedDate === m.date || r.watchedDate.startsWith(m.date.slice(0, 4)))
+                        );
+                        if (rec) setSelectedReviewRecord(rec);
+                        else setSearchQuery(m.title);
+                      }}
+                      className="p-3.5 rounded-xl bg-black/40 border border-[#d4a359]/20 hover:border-[#d4a359]/50 transition-all cursor-pointer flex flex-col justify-between space-y-2 group"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] font-tabular">
+                          <span className="text-[#d4a359]">{m.date}</span>
+                          <span className="text-amber-300 font-semibold">{m.rating}★</span>
+                        </div>
+                        <h5 className="font-editorial text-base text-[var(--text-primary)] group-hover:text-[#d4a359] transition-colors">
+                          {m.title}
+                        </h5>
+                        <p className="text-[11px] text-[#f4f0ea] italic font-editorial">
+                          {m.quote}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-[var(--border-hairline)] space-y-1">
+                        <span className="font-tabular text-[9px] uppercase tracking-wider text-[#d4a359] block">
+                          {m.tagline}
+                        </span>
+                        <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
+                          {m.psychoanalysis}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Rath's Personal Tag Taxonomy */}

@@ -12,7 +12,9 @@ import {
   Layers,
   Film,
   CheckCircle2,
-  Clock
+  Clock,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface RewatchSanctuaryProps {
@@ -36,6 +38,27 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
   const [anchorFilter, setAnchorFilter] = useState<
     'all' | 'duology' | 'multi_rewatch' | 'childhood_revival' | 'comfort_tag'
   >('all');
+  const [showAllComfortAnchors, setShowAllComfortAnchors] = useState<boolean>(false);
+  const [isLLLCollapsed, setIsLLLCollapsed] = useState<boolean>(false);
+  const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
+
+  const toggleReviewExpand = (id: string) => {
+    setExpandedReviews((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const yOffset = -110;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
 
   const displayedAnchors = useMemo(() => {
     if (anchorFilter === 'all') return anchors;
@@ -79,10 +102,47 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
   );
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-10 sm:space-y-12">
+      {/* Quick Jump Sanctuary Navigator */}
+      <div className="sticky top-[58px] sm:top-[61px] z-20 -mx-3 px-3 sm:mx-0 sm:px-0 py-2.5 bg-[var(--bg-canvas)]/92 backdrop-blur-md border-b border-[var(--border-hairline)]">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+          <span className="font-tabular text-[10px] uppercase tracking-wider text-[var(--text-muted)] shrink-0 mr-1 hidden sm:inline">
+            Sanctuary:
+          </span>
+          <button
+            onClick={() => scrollToSection('section-lalaland')}
+            className="px-3 py-1.5 rounded-full text-xs font-medium bg-black/40 hover:bg-white/[0.08] text-[var(--text-secondary)] hover:text-white border border-[var(--border-hairline)] whitespace-nowrap transition-all"
+          >
+            👑 La La Land (11x)
+          </button>
+          <button
+            onClick={() => scrollToSection('section-comfort')}
+            className="px-3 py-1.5 rounded-full text-xs font-medium bg-black/40 hover:bg-white/[0.08] text-[var(--text-secondary)] hover:text-white border border-[var(--border-hairline)] whitespace-nowrap transition-all"
+          >
+            🍿 Comfort Vault ({displayedAnchors.length})
+          </button>
+          <button
+            onClick={() => scrollToSection('section-series')}
+            className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#d4a359]/20 hover:bg-[#d4a359]/30 text-[#d4a359] border border-[#d4a359]/40 whitespace-nowrap transition-all flex items-center gap-1.5 shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>⚡ Complete Series & Universes ({franchiseArcs.length})</span>
+          </button>
+          <button
+            onClick={() => scrollToSection('section-vaanu')}
+            className="px-3 py-1.5 rounded-full text-xs font-medium bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 whitespace-nowrap transition-all"
+          >
+            🕊️ Vaanu Sanctuary
+          </button>
+        </div>
+      </div>
+
       {/* 1. Hero Exhibit: The 11-Screening La La Land Odyssey (2022 - 2026) */}
       {laLaLandAnchor && activeLLL && (
-        <section className="archive-plate rounded-3xl p-6 sm:p-8 relative overflow-hidden space-y-6 border border-[#d4a359]/30">
+        <section
+          id="section-lalaland"
+          className="archive-plate rounded-3xl p-5 sm:p-8 relative overflow-hidden space-y-6 border border-[#d4a359]/30 scroll-mt-28"
+        >
           <div
             className="absolute -top-24 -right-24 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20"
             style={{
@@ -103,110 +163,139 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
               </p>
             </div>
 
-            <div className="flex items-center gap-3 font-tabular text-xs bg-black/40 px-4 py-2.5 rounded-2xl border border-[var(--border-hairline)] shrink-0">
-              <Crown className="w-4 h-4 text-[#d4a359]" />
-              <span>70GB SSD Print · Top #1 Patron Saint</span>
+            <div className="flex items-center gap-2 self-start lg:self-auto">
+              <div className="flex items-center gap-2 font-tabular text-xs bg-black/40 px-3.5 py-2 rounded-2xl border border-[var(--border-hairline)] shrink-0">
+                <Crown className="w-3.5 h-3.5 text-[#d4a359]" />
+                <span className="hidden sm:inline">70GB SSD Print ·</span>
+                <span>Top #1 Saint</span>
+              </div>
+              <button
+                onClick={() => setIsLLLCollapsed(!isLLLCollapsed)}
+                className="p-2 sm:px-3 sm:py-2 rounded-2xl bg-black/40 hover:bg-white/[0.08] border border-[var(--border-hairline)] text-[var(--text-secondary)] hover:text-white transition-all flex items-center gap-1 font-tabular text-xs"
+                title={isLLLCollapsed ? 'Expand 11-Chapter Odyssey' : 'Collapse Odyssey'}
+              >
+                {isLLLCollapsed ? (
+                  <>
+                    <ChevronDown className="w-4 h-4 text-[#d4a359]" />
+                    <span className="hidden sm:inline">Expand</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="w-4 h-4 text-[var(--text-muted)]" />
+                    <span className="hidden sm:inline">Collapse</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Psychoanalytical Synthesis of Rath's 11 La La Land Logs */}
-          <div className="p-5 rounded-2xl bg-[#d4a359]/[0.07] border border-[#d4a359]/30 space-y-2 relative z-10">
-            <div className="flex items-center gap-2 text-[#d4a359]">
-              <Brain className="w-4 h-4 shrink-0" />
-              <span className="font-tabular text-[11px] uppercase tracking-[0.18em] font-semibold">
-                Psychoanalytical Synthesis · What Your 11 Logs Reveal About You
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed">
-              {laLaLandAnchor.psychoanalysis}
-            </p>
-          </div>
+          {/* Collapsible Content */}
+          {!isLLLCollapsed ? (
+            <div className="space-y-6">
+              {/* Psychoanalytical Synthesis of Rath's 11 La La Land Logs */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#d4a359]/[0.07] border border-[#d4a359]/30 space-y-2 relative z-10">
+                <div className="flex items-center gap-2 text-[#d4a359]">
+                  <Brain className="w-4 h-4 shrink-0" />
+                  <span className="font-tabular text-[11px] uppercase tracking-[0.18em] font-semibold">
+                    Psychoanalytical Synthesis · What Your 11 Logs Reveal About You
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed">
+                  {laLaLandAnchor.psychoanalysis}
+                </p>
+              </div>
 
-          {/* 11-Chapter Interactive Timeline Scrubber */}
-          <div className="space-y-3 relative z-10">
-            <span className="font-tabular text-[11px] uppercase tracking-wider text-[var(--text-muted)] block">
-              Select any of your {laLaLandAnchor.screenings.length} diary entries to read what you wrote that night:
-            </span>
+              {/* 11-Chapter Interactive Timeline Scrubber */}
+              <div className="space-y-3 relative z-10">
+                <span className="font-tabular text-[11px] uppercase tracking-wider text-[var(--text-muted)] block">
+                  Select any of your {laLaLandAnchor.screenings.length} diary entries to read what you wrote that night:
+                </span>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 gap-2">
-              {laLaLandAnchor.screenings.map((scr, idx) => {
-                const isSelected = idx === selectedLLLIndex;
-                return (
-                  <button
-                    key={scr.id}
-                    onClick={() => setSelectedLLLIndex(idx)}
-                    className={`p-2.5 rounded-2xl text-left transition-all border flex flex-col justify-between ${
-                      isSelected
-                        ? 'bg-[#d4a359] text-black border-[#d4a359] shadow-lg scale-[1.02]'
-                        : 'bg-black/40 hover:bg-white/[0.06] text-[var(--text-secondary)] border-[var(--border-hairline)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-tabular text-[11px] font-bold">#{idx + 1}</span>
-                      <span
-                        className={`font-tabular text-[10px] ${
-                          isSelected ? 'text-black/80 font-semibold' : 'text-[#d4a359]'
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 gap-2">
+                  {laLaLandAnchor.screenings.map((scr, idx) => {
+                    const isSelected = idx === selectedLLLIndex;
+                    return (
+                      <button
+                        key={scr.id}
+                        onClick={() => setSelectedLLLIndex(idx)}
+                        className={`p-2.5 rounded-2xl text-left transition-all border flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-[#d4a359] text-black border-[#d4a359] shadow-lg scale-[1.02]'
+                            : 'bg-black/40 hover:bg-white/[0.06] text-[var(--text-secondary)] border-[var(--border-hairline)]'
                         }`}
                       >
-                        {scr.rating ? `${scr.rating}★` : 'Log'}
-                      </span>
-                    </div>
-                    <p
-                      className={`font-tabular text-[10px] mt-1.5 truncate ${
-                        isSelected ? 'text-black font-medium' : 'text-[var(--text-primary)]'
-                      }`}
-                    >
-                      {scr.watchedDate}
-                    </p>
-                    <span
-                      className={`font-tabular text-[9px] mt-0.5 ${
-                        isSelected ? 'text-black/75' : 'text-[var(--text-muted)]'
-                      }`}
-                    >
-                      {scr.reviewWordCount}w
+                        <div className="flex items-center justify-between">
+                          <span className="font-tabular text-[11px] font-bold">#{idx + 1}</span>
+                          <span
+                            className={`font-tabular text-[10px] ${
+                              isSelected ? 'text-black/80 font-semibold' : 'text-[#d4a359]'
+                            }`}
+                          >
+                            {scr.rating ? `${scr.rating}★` : 'Log'}
+                          </span>
+                        </div>
+                        <p
+                          className={`font-tabular text-[10px] mt-1.5 truncate ${
+                            isSelected ? 'text-black font-medium' : 'text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {scr.watchedDate}
+                        </p>
+                        <span
+                          className={`font-tabular text-[9px] mt-0.5 ${
+                            isSelected ? 'text-black/75' : 'text-[var(--text-muted)]'
+                          }`}
+                        >
+                          {scr.reviewWordCount}w
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Active La La Land Screening Reader */}
+              <div className="p-4 sm:p-6 rounded-2xl bg-black/45 border border-[var(--border-hairline)] space-y-4 relative z-10">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--border-hairline)]">
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 rounded-full bg-[#d4a359]/20 text-[#d4a359] border border-[#d4a359]/40 font-tabular text-xs font-semibold">
+                      Screening #{selectedLLLIndex + 1} of {laLaLandAnchor.screenings.length}
                     </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    <span className="font-editorial text-lg sm:text-xl text-[var(--text-primary)]">
+                      {activeLLL.watchedDate}
+                    </span>
+                    {activeLLL.rating && (
+                      <span className="font-tabular text-sm text-[#d4a359]">{activeLLL.rating} ★</span>
+                    )}
+                  </div>
 
-          {/* Active La La Land Screening Reader */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-black/45 border border-[var(--border-hairline)] space-y-4 relative z-10">
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--border-hairline)]">
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-full bg-[#d4a359]/20 text-[#d4a359] border border-[#d4a359]/40 font-tabular text-xs font-semibold">
-                  Screening #{selectedLLLIndex + 1} of {laLaLandAnchor.screenings.length}
-                </span>
-                <span className="font-editorial text-xl text-[var(--text-primary)]">
-                  {activeLLL.watchedDate}
-                </span>
-                {activeLLL.rating && (
-                  <span className="font-tabular text-sm text-[#d4a359]">{activeLLL.rating} ★</span>
-                )}
-              </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeLLL.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-[var(--border-hairline)] text-[var(--text-secondary)]"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="flex flex-wrap gap-1.5">
-                {activeLLL.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-[var(--border-hairline)] text-[var(--text-secondary)]"
-                  >
-                    {t}
-                  </span>
-                ))}
+                <div className="text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-line max-h-80 sm:max-h-96 overflow-y-auto pr-2">
+                  {activeLLL.review}
+                </div>
               </div>
             </div>
-
-            <div className="text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-line max-h-96 overflow-y-auto pr-2">
-              {activeLLL.review}
-            </div>
-          </div>
+          ) : (
+            <p className="text-xs text-[var(--text-muted)] italic pt-1">
+              Odyssey collapsed to save vertical scrolling space. Tap "Expand" to inspect the 11 screenings and written logs.
+            </p>
+          )}
         </section>
       )}
 
       {/* 2. All Comfort Rewatches, Duologies & Childhood Revivals */}
-      <section className="space-y-6">
+      <section id="section-comfort" className="space-y-6 scroll-mt-28">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div>
             <p className="font-tabular text-[11px] uppercase tracking-[0.2em] text-[#d4a359]">
@@ -257,12 +346,12 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {displayedAnchors.map((anchor) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {(showAllComfortAnchors ? displayedAnchors : displayedAnchors.slice(0, 4)).map((anchor) => (
             <article
               key={`${anchor.title}-${anchor.year}`}
               onClick={() => setSelectedAnchor(anchor)}
-              className="archive-plate rounded-3xl p-6 flex flex-col justify-between gap-4 cursor-pointer hover:border-[#d4a359]/50 transition-all group"
+              className="archive-plate rounded-3xl p-5 sm:p-6 flex flex-col justify-between gap-4 cursor-pointer hover:border-[#d4a359]/50 transition-all group"
             >
               <div className="space-y-3.5">
                 <div className="flex items-start justify-between gap-2">
@@ -355,10 +444,26 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
             </article>
           ))}
         </div>
+
+        {/* Clamping Toggle Button */}
+        {displayedAnchors.length > 4 && (
+          <div className="pt-2 flex justify-center">
+            <button
+              onClick={() => setShowAllComfortAnchors(!showAllComfortAnchors)}
+              className="px-6 py-2.5 rounded-full bg-black/40 hover:bg-white/[0.08] border border-[var(--border-hairline)] hover:border-[#d4a359]/50 text-xs font-tabular text-[var(--text-secondary)] hover:text-white transition-all flex items-center gap-2 shadow-sm"
+            >
+              <span>
+                {showAllComfortAnchors
+                  ? 'Collapse to Top 4 Comfort Exhibits ↑'
+                  : `Show All ${displayedAnchors.length} Comfort Exhibits (${displayedAnchors.length - 4} more) ↓`}
+              </span>
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 3. Series Watched All-In-One-Go vs Franchises Spread Across Time */}
-      <section className="archive-plate rounded-3xl p-6 sm:p-8 space-y-6">
+      <section id="section-series" className="archive-plate rounded-3xl p-5 sm:p-8 space-y-6 scroll-mt-28">
         <div>
           <p className="font-tabular text-[11px] uppercase tracking-[0.2em] text-[#d4a359] mb-1">
             III · Complete Series Binges vs Multi-Year Universe Runs
@@ -487,7 +592,7 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
       </section>
 
       {/* 4. Sacred Memorial Exhibit: Vaanu's Poem (Aftersun, Jan 26 2026) & The "grieving" Sanctuary List */}
-      <section className="archive-plate rounded-3xl p-6 sm:p-8 border border-sky-400/25 relative overflow-hidden space-y-6">
+      <section id="section-vaanu" className="archive-plate rounded-3xl p-5 sm:p-8 border border-sky-400/25 relative overflow-hidden space-y-6 scroll-mt-28">
         <div
           className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-15"
           style={{
@@ -607,11 +712,11 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
       {/* ==================== MULTI-SCREENING COMPARISON MODAL ==================== */}
       {selectedAnchor && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
           onClick={() => setSelectedAnchor(null)}
         >
           <div
-            className="archive-plate rounded-3xl max-w-3xl w-full max-h-[88vh] overflow-y-auto p-6 sm:p-8 space-y-6 border border-[#d4a359]/40 shadow-2xl"
+            className="archive-plate rounded-3xl max-w-3xl w-full max-h-[84vh] overflow-y-auto p-5 sm:p-8 space-y-5 sm:space-y-6 border border-[#d4a359]/40 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4 pb-4 border-b border-[var(--border-hairline)]">
@@ -619,13 +724,13 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
                 <span className="font-tabular text-xs uppercase tracking-widest text-[#d4a359]">
                   Rewatch Sanctuary · {selectedAnchor.totalScreenings} Logged Screenings
                 </span>
-                <h3 className="font-editorial text-3xl sm:text-4xl text-[var(--text-primary)] mt-1">
+                <h3 className="font-editorial text-2xl sm:text-4xl text-[var(--text-primary)] mt-1">
                   {selectedAnchor.title}{' '}
-                  <span className="font-tabular text-lg text-[var(--text-muted)]">
+                  <span className="font-tabular text-base sm:text-lg text-[var(--text-muted)]">
                     ({selectedAnchor.year})
                   </span>
                 </h3>
-                <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5">
                   Directed by {selectedAnchor.director} · {selectedAnchor.language} ·{' '}
                   {Math.round((selectedAnchor.totalScreenings * selectedAnchor.runtimeMinutes) / 60)}{' '}
                   total hours invested
@@ -634,7 +739,7 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
 
               <button
                 onClick={() => setSelectedAnchor(null)}
-                className="p-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-[var(--text-secondary)] hover:text-white"
+                className="p-2 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-[var(--text-secondary)] hover:text-white shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -654,67 +759,88 @@ export const RewatchSanctuary: React.FC<RewatchSanctuaryProps> = ({ records, onO
             </div>
 
             <div className="space-y-4">
-              {selectedAnchor.screenings.map((scr, idx) => (
-                <div
-                  key={scr.id}
-                  className="p-5 rounded-2xl bg-black/40 border border-[var(--border-hairline)] space-y-3"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="px-2.5 py-1 rounded-lg bg-[#d4a359]/20 text-[#d4a359] font-tabular text-xs font-semibold">
-                        Watch #{idx + 1}
-                      </span>
-                      <span className="font-tabular text-sm text-[var(--text-primary)]">
-                        {scr.watchedDate}
-                      </span>
-                      {scr.filmTitle && (
-                        <span className="font-editorial italic text-xs text-[var(--text-secondary)]">
-                          {scr.filmTitle}
+              {selectedAnchor.screenings.map((scr, idx) => {
+                const isExpanded = expandedReviews.has(scr.id);
+                return (
+                  <div
+                    key={scr.id}
+                    className="p-4 sm:p-5 rounded-2xl bg-black/40 border border-[var(--border-hairline)] space-y-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="px-2.5 py-1 rounded-lg bg-[#d4a359]/20 text-[#d4a359] font-tabular text-xs font-semibold">
+                          Watch #{idx + 1}
                         </span>
-                      )}
-                      {scr.isImdbBackfill && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-tabular">
-                          IMDb Retrospective Backfill (≤ Oct 2022)
+                        <span className="font-tabular text-sm text-[var(--text-primary)]">
+                          {scr.watchedDate}
                         </span>
-                      )}
-                      {scr.isRewatch && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-tabular">
-                          Rewatch
+                        {scr.filmTitle && (
+                          <span className="font-editorial italic text-xs text-[var(--text-secondary)]">
+                            {scr.filmTitle}
+                          </span>
+                        )}
+                        {scr.isImdbBackfill && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-tabular">
+                            IMDb Retrospective Backfill (≤ Oct 2022)
+                          </span>
+                        )}
+                        {scr.isRewatch && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-tabular">
+                            Rewatch
+                          </span>
+                        )}
+                      </div>
+
+                      {scr.rating !== null && (
+                        <span className="font-tabular text-sm font-semibold text-[#d4a359]">
+                          {scr.rating} ★
                         </span>
                       )}
                     </div>
 
-                    {scr.rating !== null && (
-                      <span className="font-tabular text-sm font-semibold text-[#d4a359]">
-                        {scr.rating} ★
-                      </span>
+                    {scr.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {scr.tags.map((t) => (
+                          <span
+                            key={t}
+                            className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-[var(--border-hairline)] text-[var(--text-secondary)]"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {scr.review ? (
+                      <div className="pt-2 border-t border-[var(--border-hairline)] space-y-2">
+                        <p
+                          className={`text-xs sm:text-sm text-[var(--text-primary)] whitespace-pre-line leading-relaxed ${
+                            isExpanded ? '' : 'line-clamp-3'
+                          }`}
+                        >
+                          {scr.review}
+                        </p>
+                        {scr.review.length > 160 && (
+                          <button
+                            onClick={() => toggleReviewExpand(scr.id)}
+                            className="text-[11px] font-tabular text-[#d4a359] hover:text-amber-200 flex items-center gap-1 font-medium transition-colors cursor-pointer"
+                          >
+                            <span>
+                              {isExpanded
+                                ? 'Collapse review ↑'
+                                : `Read full review (${scr.reviewWordCount} words) ↓`}
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs italic text-[var(--text-muted)] pt-2 border-t border-[var(--border-hairline)]">
+                        Logged without written prose on this screening.
+                      </p>
                     )}
                   </div>
-
-                  {scr.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {scr.tags.map((t) => (
-                        <span
-                          key={t}
-                          className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-[var(--border-hairline)] text-[var(--text-secondary)]"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {scr.review ? (
-                    <p className="text-xs sm:text-sm text-[var(--text-primary)] whitespace-pre-line leading-relaxed pt-2 border-t border-[var(--border-hairline)]">
-                      {scr.review}
-                    </p>
-                  ) : (
-                    <p className="text-xs italic text-[var(--text-muted)]">
-                      Logged without written prose on this screening.
-                    </p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
