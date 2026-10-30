@@ -2,7 +2,7 @@
 
 ## 🚀 Phase 1: Repository Setup & Mobile PWA Pipeline (Current Focus)
 - [x] **GitHub Remote Connection**: Link local repo to GitHub (`rathusan2005-dotcom/cinema-chronicle`) & push `main`.
-- [ ] **Vercel Continuous Deployment**: Wire GitHub repo to Vercel for continuous deployment to mobile.
+- [x] **Vercel Continuous Deployment**: Wire GitHub repo to Vercel for continuous deployment to mobile (Live at cinema-chronicle-brown.vercel.app).
 - [x] **iPhone PWA Meta & Branding**: Update `index.html` and `package.json` for seamless iOS "Add to Home Screen" launch.
 - [x] **Clean Build Verification**: Ensure zero-error Vite build pipeline (`npm run build`).
 
