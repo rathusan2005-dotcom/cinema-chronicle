@@ -1,10 +1,10 @@
 # 🗺️ Cinema Chronicle — Active Roadmap
 
 ## 🚀 Phase 1: Repository Setup & Mobile PWA Pipeline (Current Focus)
-- [ ] **GitHub Remote Connection**: Link local repo to GitHub (`rathusan2005-dotcom/cinema_chronicle`) & push `main`.
+- [x] **GitHub Remote Connection**: Link local repo to GitHub (`rathusan2005-dotcom/cinema-chronicle`) & push `main`.
 - [ ] **Vercel Continuous Deployment**: Wire GitHub repo to Vercel for continuous deployment to mobile.
-- [ ] **iPhone PWA Meta & Branding**: Update `index.html` and `package.json` for seamless iOS "Add to Home Screen" launch.
-- [ ] **Clean Build Verification**: Ensure zero-error Vite build pipeline (`npm run build`).
+- [x] **iPhone PWA Meta & Branding**: Update `index.html` and `package.json` for seamless iOS "Add to Home Screen" launch.
+- [x] **Clean Build Verification**: Ensure zero-error Vite build pipeline (`npm run build`).
 
 ## 📥 Phase 2: Letterboxd Parser & Local Ingestion Engine
 - [ ] **Letterboxd Multi-File CSV Parser**: Ingest and reconcile `diary.csv`, `reviews.csv`, `ratings.csv`, and `watched.csv`.
