@@ -22,5 +22,9 @@
 - [x] **Cinephile Psychoanalysis Engine**: Deep psychological mirrors across Auteurs, the Sacred 5★ Rating Curve, and Year-by-Year Cadence (2024 torrent, 2025 peak, 2026 rest).
 - [x] **Review Lexicon Cloud (Emotional Word Bank)**: Dynamic word frequency cloud with emphatic elongation normalization (`CINEMAAA` -> `cinema`), stopword filtering, 5 emotional palettes, and live 1-click review filtering.
 
-## 🎨 Phase 4: Next Refinements & Interactive Polish
+## 🎨 Phase 4: Mobbin UX Architecture & Interactive Polish (v0.4.0 BETA)
+- [x] **Airbnb Interactive Rating Histogram Scrubber**: Dual-handled star range scrubber with active bar gold glow, live review counter, and quick preset filters.
+- [x] **Unsplash Inline Director Sparklines & Film Chips**: SVG watch trajectory curves and micro filmography chips linking directly to reviews in *The Rabbit Hole*.
+- [x] **Instrument Editorial Breadcrumb Capsules**: Analog Criterion/gallery masthead capsules tracking active navigation across desktop and mobile.
+- [x] **Universe Mobile Dock & Tactile Touch**: Spring-press navigation dock with safe-area spacing and iOS 44px ergonomic targets for iPhone 16 Pro.
 - [ ] **Poster Artwork / Visual Stills Integration**: Optional client-side TMDB/Letterboxd poster artwork fetcher or custom still cards.

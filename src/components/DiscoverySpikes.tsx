@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { FilmRecord, DirectorDossier } from '../types';
+import { FilmRecord, DirectorDossier, DirectorFilmLog } from '../types';
 import { computeDirectorDossiers } from '../lib/analytics';
 import {
   Compass,
@@ -15,6 +15,70 @@ import {
   Zap,
   Brain
 } from 'lucide-react';
+
+// Unsplash-Style Watch Trajectory Sparkline Curve Generator
+const getSparklinePath = (logs: DirectorFilmLog[], width = 240, height = 28) => {
+  if (!logs || logs.length === 0) return { lineD: '', areaD: '', points: [] };
+  const padX = 4;
+  const padY = 4;
+  const n = logs.length;
+
+  const pts = logs.map((l, i) => {
+    const x = n === 1 ? width / 2 : padX + (i / (n - 1)) * (width - 2 * padX);
+    const val = l.rating !== null ? l.rating : 3.5;
+    const norm = Math.max(0, Math.min(1, (val - 1.0) / 4.0));
+    const y = height - padY - norm * (height - 2 * padY);
+    return {
+      x: Math.round(x * 10) / 10,
+      y: Math.round(y * 10) / 10,
+      rating: l.rating,
+      title: l.title,
+      date: l.watchedDate
+    };
+  });
+
+  if (pts.length === 1) {
+    return {
+      lineD: `M ${padX} ${pts[0].y} L ${width - padX} ${pts[0].y}`,
+      areaD: `M ${padX} ${pts[0].y} L ${width - padX} ${pts[0].y} L ${width - padX} ${height} L ${padX} ${height} Z`,
+      points: pts
+    };
+  }
+
+  let lineD = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1];
+    const curr = pts[i];
+    const cp1x = prev.x + (curr.x - prev.x) / 2;
+    const cp1y = prev.y;
+    const cp2x = prev.x + (curr.x - prev.x) / 2;
+    const cp2y = curr.y;
+    lineD += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`;
+  }
+
+  const last = pts[pts.length - 1];
+  const first = pts[0];
+  const areaD = `${lineD} L ${last.x} ${height} L ${first.x} ${height} Z`;
+
+  return { lineD, areaD, points: pts };
+};
+
+// Extracts top unique films with ratings for director chips
+const getTopFilms = (logs: DirectorFilmLog[]) => {
+  const seen = new Set<string>();
+  const list: DirectorFilmLog[] = [];
+  const sorted = [...logs].sort(
+    (a, b) => (b.rating || 0) - (a.rating || 0) || b.watchedDate.localeCompare(a.watchedDate)
+  );
+  for (const log of sorted) {
+    if (!seen.has(log.title)) {
+      seen.add(log.title);
+      list.push(log);
+    }
+    if (list.length >= 4) break;
+  }
+  return list;
+};
 
 interface DiscoverySpikesProps {
   records: FilmRecord[];
@@ -191,6 +255,82 @@ export const DiscoverySpikes: React.FC<DiscoverySpikesProps> = ({
                 <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
                   {d.psychoanalysis}
                 </p>
+              </div>
+
+              {/* Unsplash-Style Inline Sparkline & Micro Film Chips */}
+              <div className="space-y-2 pt-1">
+                {/* Sparkline Canvas */}
+                <div className="p-2.5 rounded-2xl bg-black/40 border border-[var(--border-hairline)] space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px] font-tabular text-[var(--text-muted)] px-0.5">
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5 text-[#d4a359]" />
+                      Watch Trajectory ({d.filmographyLogs.length} screenings)
+                    </span>
+                    <span className="text-[#d4a359]">
+                      {d.gatewayDate.slice(0, 4)} → {d.filmographyLogs[d.filmographyLogs.length - 1]?.watchedDate.slice(0, 4) || '2026'}
+                    </span>
+                  </div>
+
+                  {/* SVG Sparkline */}
+                  <div className="w-full h-8 relative">
+                    <svg
+                      viewBox="0 0 240 28"
+                      preserveAspectRatio="none"
+                      className="w-full h-full overflow-visible"
+                    >
+                      <defs>
+                        <linearGradient id={`spark-${d.director.replace(/[^a-zA-Z0-9]/g, '')}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#d4a359" stopOpacity="0.35" />
+                          <stop offset="100%" stopColor="#d4a359" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      {(() => {
+                        const { lineD, areaD, points } = getSparklinePath(d.filmographyLogs, 240, 28);
+                        const lastPt = points[points.length - 1];
+                        return (
+                          <>
+                            <path d={areaD} fill={`url(#spark-${d.director.replace(/[^a-zA-Z0-9]/g, '')})`} />
+                            <path d={lineD} fill="none" stroke="#d4a359" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            {lastPt && (
+                              <circle
+                                cx={lastPt.x}
+                                cy={lastPt.y}
+                                r="2.5"
+                                fill="#d4a359"
+                                className="animate-pulse"
+                              />
+                            )}
+                          </>
+                        );
+                      })()}
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Micro Filmography Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+                  {getTopFilms(d.filmographyLogs).map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={(e) => {
+                        if (f.hasReview && onOpenReview) {
+                          e.stopPropagation();
+                          onOpenReview(f.title);
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-tabular whitespace-nowrap transition-all border ${
+                        f.hasReview
+                          ? 'bg-[#d4a359]/10 text-[#d4a359] border-[#d4a359]/30 hover:bg-[#d4a359]/20 hover:border-[#d4a359]'
+                          : 'bg-white/[0.03] text-[var(--text-secondary)] border-white/[0.06] hover:bg-white/[0.06]'
+                      }`}
+                      title={f.hasReview ? `Read review for ${f.title}` : `${f.title} (${f.year})`}
+                    >
+                      <span className="truncate max-w-[95px]">{f.title}</span>
+                      {f.rating && <span className="text-[#d4a359] font-semibold">{f.rating}★</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

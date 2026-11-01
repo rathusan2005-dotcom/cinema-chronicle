@@ -98,6 +98,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-[var(--text-muted)]">loved</span>
               </div>
             </div>
+
+            {/* Instrument-Style Editorial Breadcrumb Capsule */}
+            <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-[var(--border-specular)] font-tabular text-[11px] shadow-sm">
+              <span className="text-[var(--text-muted)] font-medium">@rathhh 🐅</span>
+              <span className="text-white/20">›</span>
+              <span className="text-[var(--text-secondary)]">{stats.totalBoxdFilms} Films</span>
+              <span className="text-white/20">›</span>
+              <span className="text-[#d4a359] font-medium flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d4a359] animate-pulse" />
+                {tabs.find((t) => t.id === activeTab)?.fullLabel}
+              </span>
+            </div>
           </div>
 
           {/* Right: Dual Surface Mode Switcher & CSV Ingest */}
@@ -153,12 +165,29 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
         </div>
+
+        {/* Mobile / Tablet Instrument-Style Editorial Breadcrumb Strip */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-2 pt-0.5 flex xl:hidden items-center justify-between text-[11px] font-tabular border-t border-[var(--border-hairline)]/50 mt-1">
+          <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
+            <span className="text-[var(--text-secondary)] font-medium">@rathhh 🐅</span>
+            <span className="text-white/20">›</span>
+            <span>{stats.totalBoxdFilms} Films</span>
+            <span className="text-white/20">›</span>
+            <span className="text-[#d4a359] font-medium flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#d4a359] animate-pulse" />
+              {tabs.find((t) => t.id === activeTab)?.label}
+            </span>
+          </div>
+          <span className="text-[10px] text-[var(--text-muted)] font-tabular">
+            {stats.totalWrittenReviews} reviews
+          </span>
+        </div>
       </header>
 
-      {/* Floating Liquid-Glass Bottom Pill Dock */}
+      {/* Floating Liquid-Glass Bottom Pill Dock (Universe-Style Tactile Refinement) */}
       <nav
         aria-label="Primary Chronicle Navigation"
-        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 px-2 py-1.5 rounded-full liquid-dock flex items-center gap-1 sm:gap-1.5 max-w-[95vw] overflow-x-auto scrollbar-none"
+        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 p-1.5 rounded-full liquid-dock flex items-center gap-1 sm:gap-1.5 max-w-[96vw] overflow-x-auto scrollbar-none shadow-[0_16px_40px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.18)] border border-white/12 backdrop-blur-2xl"
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -167,10 +196,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center justify-center gap-2 px-3.5 sm:px-4 min-h-[42px] sm:min-h-[44px] rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+              className={`relative flex items-center justify-center gap-2 px-3.5 sm:px-4 min-h-[44px] rounded-full text-xs font-medium whitespace-nowrap transition-all duration-150 active:scale-[0.95] select-none ${
                 isActive
-                  ? 'bg-white/[0.13] text-[var(--text-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] border border-white/15'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
+                  ? 'bg-gradient-to-b from-white/[0.18] to-white/[0.08] text-[var(--text-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_4px_16px_rgba(212,163,89,0.15)] border border-white/20'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] active:bg-white/[0.08]'
               }`}
             >
               <Icon
@@ -181,7 +210,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="hidden sm:inline">{tab.fullLabel}</span>
               <span className="sm:hidden">{tab.label}</span>
               {isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4a359] shadow-[0_0_8px_#d4a359]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d4a359] shadow-[0_0_8px_#d4a359] animate-pulse" />
               )}
             </button>
           );

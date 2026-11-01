@@ -40,6 +40,7 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedLexiconWord, setSelectedLexiconWord] = useState<string | null>(null);
+  const [starRange, setStarRange] = useState<[number, number] | null>(null);
   const [isVulnerabilityExpanded, setIsVulnerabilityExpanded] = useState<boolean>(true);
   const [ratingFilter, setRatingFilter] = useState<'all' | 'journal' | '5' | '4.5+' | 'low'>('all');
   const [sortBy, setSortBy] = useState<'longest' | 'newest' | 'highest' | 'oldest'>('longest');
@@ -176,6 +177,13 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
       if (ratingFilter === '4.5+' && (r.rating === null || r.rating < 4.5)) return false;
       if (ratingFilter === 'low' && (r.rating === null || r.rating > 2.5)) return false;
 
+      // Airbnb Interactive Star Range Scrubber
+      if (starRange) {
+        if (r.rating === null || r.rating < starRange[0] || r.rating > starRange[1]) {
+          return false;
+        }
+      }
+
       if (q) {
         const inTitle = r.title.toLowerCase().includes(q);
         const inDirector = r.director.toLowerCase().includes(q);
@@ -193,7 +201,7 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
       if (sortBy === 'highest') return (b.rating || 0) - (a.rating || 0) || b.reviewWordCount - a.reviewWordCount;
       return 0;
     });
-  }, [reviewedRecords, searchQuery, selectedTag, ratingFilter, sortBy]);
+  }, [reviewedRecords, searchQuery, selectedTag, selectedLexiconWord, ratingFilter, starRange, sortBy]);
 
   const activeList: CuratedList | undefined = useMemo(() => {
     return PRELOADED_LISTS.find((l) => l.id === activeListId) || PRELOADED_LISTS[0];
@@ -353,30 +361,171 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
             )}
           </div>
 
-          {/* Mini Star Rating Curve */}
-          <div className="lg:col-span-5 flex items-end justify-between gap-1.5 bg-black/30 px-4 py-2.5 rounded-2xl border border-[var(--border-hairline)]">
-            <div className="mr-2">
-              <span className="font-tabular text-[10px] uppercase tracking-wider text-[var(--text-muted)] block">
-                Star Curve
-              </span>
-              <span className="font-editorial text-sm text-[#d4a359]">0.5★ – 5.0★</span>
-            </div>
-            <div className="flex items-end gap-1.5 flex-1 h-10">
-              {starDistribution.map((b) => (
-                <div
-                  key={b.star}
-                  className="flex-1 flex flex-col items-center justify-end h-full group relative"
-                  title={`${b.star}★: ${b.count} logs`}
-                >
-                  <div
-                    className="w-full rounded-t bg-[#d4a359]/45 group-hover:bg-[#d4a359] transition-all"
-                    style={{ height: `${Math.max(b.pct, 8)}%` }}
-                  />
-                  <span className="font-tabular text-[9px] text-[var(--text-muted)] mt-1">
-                    {b.star % 1 === 0 ? `${b.star}★` : ''}
+          {/* Airbnb-Style Interactive Rating Histogram Scrubber */}
+          <div className="lg:col-span-5 flex flex-col justify-between gap-2 bg-black/40 p-3 sm:p-3.5 rounded-2xl border border-[var(--border-hairline)] shadow-lg backdrop-blur-md">
+            {/* Header: Label, Active Range & Live Match Count + Airbnb Clear Button */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="font-tabular text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                  Rating Scrubber
+                </span>
+                {starRange ? (
+                  <span className="font-tabular text-xs font-semibold px-2 py-0.5 rounded-full bg-[#d4a359]/20 text-[#d4a359] border border-[#d4a359]/35">
+                    {starRange[0]}★ – {starRange[1]}★
                   </span>
+                ) : (
+                  <span className="font-tabular text-[11px] text-[var(--text-secondary)]">
+                    All Ratings (0.5★–5.0★)
+                  </span>
+                )}
+              </div>
+
+              {starRange ? (
+                <div className="flex items-center gap-2">
+                  <span className="font-tabular text-[10px] text-[var(--text-muted)]">
+                    {filteredReviews.length} reviews
+                  </span>
+                  <button
+                    onClick={() => {
+                      setStarRange(null);
+                      setRatingFilter('all');
+                    }}
+                    className="text-[11px] font-tabular font-medium text-[#d4a359] hover:text-white underline decoration-[#d4a359]/60 transition-colors"
+                  >
+                    Clear
+                  </button>
                 </div>
-              ))}
+              ) : (
+                <span className="text-[10px] font-tabular text-[var(--text-muted)]">
+                  Tap bar or scrub
+                </span>
+              )}
+            </div>
+
+            {/* Interactive Histogram Bars */}
+            <div className="flex items-end gap-1 sm:gap-1.5 h-12 pt-1 px-1">
+              {starDistribution.map((b) => {
+                const isSelected =
+                  !starRange || (b.star >= starRange[0] && b.star <= starRange[1]);
+                const isExact =
+                  starRange && starRange[0] === b.star && starRange[1] === b.star;
+
+                return (
+                  <button
+                    key={b.star}
+                    type="button"
+                    onClick={() => {
+                      if (isExact) {
+                        setStarRange(null);
+                        setRatingFilter('all');
+                      } else {
+                        setStarRange([b.star, b.star]);
+                      }
+                    }}
+                    className="flex-1 flex flex-col items-center justify-end h-full group relative focus:outline-none"
+                    title={`${b.star}★: ${b.count} logs · Click to filter`}
+                  >
+                    {/* Hover Count Badge */}
+                    <span className="opacity-0 group-hover:opacity-100 absolute -top-5 z-20 font-tabular text-[9px] bg-[#1a1714] text-[#d4a359] border border-[#d4a359]/40 px-1 py-0.2 rounded shadow-md pointer-events-none transition-opacity whitespace-nowrap">
+                      {b.count}
+                    </span>
+
+                    <div
+                      className={`w-full rounded-t transition-all duration-200 ${
+                        isSelected
+                          ? starRange
+                            ? 'bg-[#d4a359] shadow-[0_0_10px_rgba(212,163,89,0.5)] scale-y-100'
+                            : 'bg-[#d4a359]/60 group-hover:bg-[#d4a359]'
+                          : 'bg-white/10 opacity-30 group-hover:opacity-75'
+                      }`}
+                      style={{ height: `${Math.max(b.pct, 12)}%` }}
+                    />
+                    <span
+                      className={`font-tabular text-[9px] mt-1 transition-colors ${
+                        isSelected && starRange
+                          ? 'text-[#d4a359] font-bold'
+                          : 'text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'
+                      }`}
+                    >
+                      {b.star % 1 === 0 ? `${b.star}★` : ''}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Scrubber Presets & Dual Range Adjustment */}
+            <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-white/[0.06] text-[10px] font-tabular">
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+                {[
+                  { label: 'All', range: null },
+                  { label: '👑 5★', range: [5, 5] as [number, number] },
+                  { label: '❤️ 4.5★+', range: [4.5, 5] as [number, number] },
+                  { label: '✨ 4.0★+', range: [4, 5] as [number, number] },
+                  { label: '💀 ≤2.5★', range: [0.5, 2.5] as [number, number] }
+                ].map((preset) => {
+                  const isActive =
+                    (!preset.range && !starRange) ||
+                    (preset.range &&
+                      starRange &&
+                      preset.range[0] === starRange[0] &&
+                      preset.range[1] === starRange[1]);
+                  return (
+                    <button
+                      key={preset.label}
+                      onClick={() => {
+                        setStarRange(preset.range);
+                        setRatingFilter('all');
+                      }}
+                      className={`px-2 py-0.5 rounded-full transition-all whitespace-nowrap ${
+                        isActive
+                          ? 'bg-[#d4a359] text-black font-semibold shadow-sm'
+                          : 'bg-white/[0.04] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.08]'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Min/Max dual scrub adjustment */}
+              <div className="flex items-center gap-1 shrink-0 pl-1 text-[var(--text-muted)]">
+                <span className="hidden sm:inline text-[9px]">Range:</span>
+                <select
+                  value={starRange ? starRange[0] : 0.5}
+                  onChange={(e) => {
+                    const min = parseFloat(e.target.value);
+                    const currentMax = starRange ? starRange[1] : 5.0;
+                    setStarRange([min, Math.max(min, currentMax)]);
+                  }}
+                  className="bg-black/60 border border-[var(--border-hairline)] rounded px-1 py-0.5 text-[10px] text-[var(--text-primary)] focus:border-[#d4a359] outline-none"
+                  aria-label="Minimum rating"
+                >
+                  {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((s) => (
+                    <option key={s} value={s}>
+                      {s}★
+                    </option>
+                  ))}
+                </select>
+                <span>–</span>
+                <select
+                  value={starRange ? starRange[1] : 5.0}
+                  onChange={(e) => {
+                    const max = parseFloat(e.target.value);
+                    const currentMin = starRange ? starRange[0] : 0.5;
+                    setStarRange([Math.min(currentMin, max), max]);
+                  }}
+                  className="bg-black/60 border border-[var(--border-hairline)] rounded px-1 py-0.5 text-[10px] text-[var(--text-primary)] focus:border-[#d4a359] outline-none"
+                  aria-label="Maximum rating"
+                >
+                  {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((s) => (
+                    <option key={s} value={s}>
+                      {s}★
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -675,7 +824,13 @@ export const ReviewLedger: React.FC<ReviewLedgerProps> = ({
                 ).map((rf) => (
                   <button
                     key={rf.id}
-                    onClick={() => setRatingFilter(rf.id)}
+                    onClick={() => {
+                      setRatingFilter(rf.id);
+                      if (rf.id === '5') setStarRange([5, 5]);
+                      else if (rf.id === '4.5+') setStarRange([4.5, 5]);
+                      else if (rf.id === 'low') setStarRange([0.5, 2.5]);
+                      else if (rf.id === 'all') setStarRange(null);
+                    }}
                     className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
                       ratingFilter === rf.id
                         ? 'bg-white/12 text-white'

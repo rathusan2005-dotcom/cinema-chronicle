@@ -8,6 +8,17 @@
 
 ## 🧪 Active Beta & Iterative Updates
 
+### 🎨 Cinema Chronicle v0.4.0 BETA — The Mobbin Editorial & Histogram Edition — *2026-11-01*
+
+Integrated real-world UI/UX design patterns inspired by Rath's Mobbin reference library (Airbnb, Unsplash, Instrument, and Universe), elevating tactile interaction and editorial elegance across all devices:
+
+- 📊 **Airbnb-Style Interactive Rating Histogram Scrubber (`ReviewLedger.tsx`)**: Re-engineered the Star Curve into a live interactive dual-handled range scrubber. Users can click any individual star bar (0.5★ to 5.0★) to focus directly on that exact rating, select preset chips (`[👑 5★]`, `[❤️ 4.5★+]`, `[✨ 4.0★+]`, `[💀 ≤2.5★]`), or dial in custom brackets with min/max selectors. Active bars illuminate in glowing amber with real-time match counters (`Show N reviews`) and an instant Airbnb-style `Clear` link.
+- 📈 **Unsplash-Style Inline Sparklines & Micro Film Chips (`DiscoverySpikes.tsx`)**: Embedded a smooth cubic bezier watch trajectory sparkline (with subtle gold vertical gradient area fill and glowing endpoint node) into every director card in *The Rabbit Hole*. Paired each card with a horizontal row of micro filmography chips displaying top films and ratings, allowing 1-click jumps directly to Rath's written review for that film.
+- 🏛️ **Instrument-Style Editorial Breadcrumb Capsules (`Navbar.tsx`)**: Added analog Criterion/editorial capsule breadcrumbs (`@rathhh 🐅 › 477 Films › [Active Tab]`) with specular hairline borders and pulsing amber active indicators across desktop and mobile headers.
+- 📱 **Universe-Style Mobile Dock & Touch Refinements (`Navbar.tsx`)**: Fine-tuned the floating bottom navigation dock with deep frosted-glass saturation (`backdrop-blur-2xl bg-black/75`), tactile spring press states (`active:scale-[0.95]`), and Apple iOS Human Interface Guidelines 44px touch targets tailored for Rath's iPhone 16 Pro.
+
+---
+
 ### 📱 Cinema Chronicle v0.3.1 BETA — Sanctuary Quick-Jump, Review Truncation & Vulnerability Milestones — *2026-10-30*
 
 Refined mobile accessibility, reading ergonomics, and psychological depth based on Rath's testing on iPhone 16 Pro:
